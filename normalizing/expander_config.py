@@ -12,7 +12,7 @@ Place your utf8-symbol file, word-symbol file, grammar-fst and language model in
 import configparser
 
 config = configparser.ConfigParser()
-config['GRAMMAR_DIRS'] = {'grammars': 'data/'}
+config['GRAMMAR_DIRS'] = {'grammars': '/Users/anna/PycharmProjects/text_normalization/normalizing/data/'}
 config['symbol tables'] = {}
 config['symbol tables']['utf8'] = 'utf8.syms'
 config['symbol tables']['word-symbol'] = 'lm_word_symbol.txt'

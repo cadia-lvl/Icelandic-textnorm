@@ -6,8 +6,7 @@ Copyright: Reykjavik University
 Author: Anna Björk Nikulásdóttir
 License: Apache 2.0
 
-Expands numbers in an input text according to a given grammar and a language model, stored in a configuration file.
-
+Expands numbers in an input text according to a given grammar and a language model.
 Example:
 
     input: 'þetta eru 2 konur'
@@ -27,7 +26,7 @@ import pywrapfst as fst
 
 class Expander:
 
-    def __init__(self, configfile):
+    def __init__(self, configfile='expander.conf'):
         config = configparser.ConfigParser()
         config.read(configfile)
         grammar_dir = config['GRAMMAR_DIRS']['grammars']
