@@ -18,7 +18,15 @@ class Utterance:
 
     def __init__(self, inp):
         self.original_sentence = inp
+        self.tokenized = []
+        self.tokenized_string = ""
+        self.classified = ""
 
+    def print_classified(self):
+        print(self.classified)
 
-    def print(self):
+    def print_tokenized(self):
+        print(' '.join(self.tokenized))
+
+    def print_original(self):
         print(self.original_sentence)

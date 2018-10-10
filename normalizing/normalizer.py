@@ -14,6 +14,7 @@ The LVL text normalizer follows the ideas of Sparrowhawk (cit.) for a two step t
 """
 
 from tokenizer import Tokenizer
+from classifier import Classifier
 from utt_coll import UtteranceCollection
 from utt_coll import Utterance
 
@@ -22,18 +23,27 @@ class Normalizer:
     def __init__(self, input_text):
         self.original_text = input_text
         self.utterance_collection = UtteranceCollection()
+        self.tok = Tokenizer()
 
+    def normalize_utterance(self, utt):
+        classifier = Classifier()
+        utt.tokenized = self.tok.tokenize_words(utt.original_sentence)
+        utt.tokenized_string = ' '.join(utt.tokenized)
+        utt.classified = classifier.classify(utt.tokenized_string)
 
     def normalize(self):
-        tok = Tokenizer()
-        sentence_list = tok.tokenize_sentence(self.original_text)
+        sentence_list = self.tok.tokenize_sentence(self.original_text)
         for sent in sentence_list:
             self.utterance_collection.add_utterance(Utterance(sent))
-
+        for utt in self.utterance_collection.collection:
+            self.normalize_utterance(utt)
 
     def print_normalized_text(self):
         for utt in self.utterance_collection.collection:
-            utt.print()
+            #utt.print_original()
+            #utt.print_tokenized()
+            utt.print_classified()
+
 
 def main():
     input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
