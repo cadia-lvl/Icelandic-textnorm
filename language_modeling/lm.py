@@ -32,7 +32,7 @@ def make_ngram_lm(corpus, word_syms=None, order=3):
     start = time.time()
     if word_syms is None:
         logging.info("Creating word-symbol table ...")
-        word_syms = create_symbol_table(corpus_basename)
+        word_syms = create_symbol_table(corpus)
 
     logging.info(" Compiling corpus ...")
     cmd = "farcompilestrings -symbols={} -keep_symbols=1 {} > {}.far".format(word_syms, corpus, corpus_basename)
@@ -42,10 +42,22 @@ def make_ngram_lm(corpus, word_syms=None, order=3):
     subprocess.call(cmd, shell=True)
     cmd = "ngrammake {}.cnt > {}.mod".format(corpus_basename, corpus_basename)
     subprocess.call(cmd, shell=True)
+    cmd = "fstprint {}.mod | perl s2eps.pl > {}_s2eps.txt".format(corpus_basename, corpus_basename)
+    subprocess.call(cmd, shell=True)
+    cmd = "fstcompile --isymbols={} --osymbols={} {}_s2eps.txt > {}.fst".format(word_syms, word_syms, corpus_basename, corpus_basename)
+    subprocess.call(cmd, shell=True)
+    """
+    cmd = "fstprint {}.mod | perl s2eps.pl | fstcompile --{i,o}symbols={} --keep_{i,o}symbols=false > {}.fst".format(
+        corpus_basename, word_syms, corpus_basename)
+    subprocess.call(cmd, shell=True)
+    """
+
+    """
     cmd = "ngramprint --ARPA {}.mod > {}.arpa".format(corpus_basename, corpus_basename)
     subprocess.call(cmd, shell=True)
     cmd = "ngramread --ARPA {}.arpa > {}.fst".format(corpus_basename, corpus_basename)
     subprocess.call(cmd, shell=True)
+    """
     end = time.time()
     logging.info(" Language model created in: '{}.fst'".format(corpus_basename))
     logging.info(" LM training took around {} seconds. Info:".format(int(round(end - start))))
