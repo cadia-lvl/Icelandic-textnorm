@@ -13,6 +13,27 @@ The LVL text normalizer follows the ideas of Sparrowhawk (cit.) for a two step t
 
 """
 
+from tokenizer import Tokenizer
+from utt_coll import UtteranceCollection
+from utt_coll import Utterance
+
+class Normalizer:
+
+    def __init__(self, input_text):
+        self.original_text = input_text
+        self.utterance_collection = UtteranceCollection()
+
+
+    def normalize(self):
+        tok = Tokenizer()
+        sentence_list = tok.tokenize_sentence(self.original_text)
+        for sent in sentence_list:
+            self.utterance_collection.add_utterance(Utterance(sent))
+
+
+    def print_normalized_text(self):
+        for utt in self.utterance_collection.collection:
+            utt.print()
 
 def main():
     input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
@@ -21,9 +42,9 @@ def main():
                  "að martröð við fall bankanna í október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í " \
                  "heimildarmyndinni Nýja Ísland sem sýnd var á Stöð 2 í vikunni."
 
-    normalized = input_text
-    print("Input: " + input_text)
-    print("Normalized: " + normalized)
+    norm = Normalizer(input_text)
+    norm.normalize()
+    norm.print_normalized_text()
 
 
 if __name__ == '__main__':
