@@ -12,7 +12,7 @@ The LVL text normalizer follows the ideas of Sparrowhawk (cit.) for a two step t
     2) verbalizing
 
 """
-
+from fst_parser import FSTParser
 from tokenizer import Tokenizer
 from classifier import Classifier
 from utt_coll import UtteranceCollection
@@ -24,12 +24,16 @@ class Normalizer:
         self.original_text = input_text
         self.utterance_collection = UtteranceCollection()
         self.tok = Tokenizer()
+        self.classifier = Classifier()
 
     def normalize_utterance(self, utt):
-        classifier = Classifier()
+
         utt.tokenized = self.tok.tokenize_words(utt.original_sentence)
         utt.tokenized_string = ' '.join(utt.tokenized)
-        utt.classified = classifier.classify(utt.tokenized_string)
+        classified_fst, stringified = self.classifier.classify(utt.tokenized_string)
+        utt.classified = stringified
+        parser = FSTParser(classified_fst)
+        parser.parse_tokens_from_fst(utt)
 
     def normalize(self):
         sentence_list = self.tok.tokenize_sentence(self.original_text)
@@ -40,10 +44,7 @@ class Normalizer:
 
     def print_normalized_text(self):
         for utt in self.utterance_collection.collection:
-            #utt.print_original()
-            #utt.print_tokenized()
             utt.print_classified()
-
 
 def main():
     input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
@@ -54,7 +55,7 @@ def main():
 
     norm = Normalizer(input_text)
     norm.normalize()
-    norm.print_normalized_text()
+    #norm.print_normalized_text()
 
 
 if __name__ == '__main__':

@@ -46,7 +46,7 @@ class Classifier:
         classified = shortest_path.stringify(token_type=self.utf8_symbols)
         classified = classified.replace(' ', '')
         classified = classified.replace('0x0020', ' ')
-        return classified
+        return shortest_path, classified
 
 
 def main():
