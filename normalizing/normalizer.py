@@ -12,11 +12,13 @@ The LVL text normalizer follows the ideas of Sparrowhawk (cit.) for a two step t
     2) verbalizing
 
 """
+import jsonpickle
+import json
 from fst_parser import FSTParser
 from tokenizer import Tokenizer
 from classifier import Classifier
-from utt_coll import UtteranceCollection
-from utt_coll import Utterance
+from utterance_structure.utt_coll import UtteranceCollection
+from utterance_structure.utt_coll import Utterance
 
 class Normalizer:
 
@@ -34,6 +36,7 @@ class Normalizer:
         utt.classified = stringified
         parser = FSTParser(classified_fst)
         parser.parse_tokens_from_fst(utt)
+        utt.to_jsonpickle(utt.original_sentence + '_utt.json')
 
     def normalize(self):
         sentence_list = self.tok.tokenize_sentence(self.original_text)
@@ -47,7 +50,9 @@ class Normalizer:
             utt.print_classified()
 
 def main():
-    input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
+
+    input_text = "fer fram 7.-10. nóvember."
+    input_text_x = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
                  "húsi, loksins hvað þau skulda Arion banka. Af þessum 240 atriðum eru yfir 150 íslensk bönd en " \
                  "hátíðin fer fram 7.-10. nóvember. Draumur þeirra að byggja fallegt hús við Elliðavatn í Kópavogi varð " \
                  "að martröð við fall bankanna í október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í " \
@@ -56,7 +61,12 @@ def main():
     norm = Normalizer(input_text)
     norm.normalize()
     #norm.print_normalized_text()
-
+    with open("utterance.json") as read_file:
+        utt_in = read_file.read()
+        utt_obj = jsonpickle.decode(utt_in)
+        print("Decoded:")
+        print(utt_obj.print_classified())
+        print(utt_obj.original_sentence)
 
 if __name__ == '__main__':
     main()

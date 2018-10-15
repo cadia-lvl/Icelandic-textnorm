@@ -4,7 +4,7 @@
 import pynini as pn
 import pywrapfst as fst
 from classifier import Classifier
-from utt_coll import Token, TokenType
+from utterance_structure.utt_coll import Token, TokenType
 
 SPACE = 32
 QUOTES = 34
@@ -13,6 +13,8 @@ CURLY_OPEN = 123
 CURLY_CLOSE = 125
 
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
+
+SUBSTRUCTURE = ['cardinal']
 
 
 class FSTParser:
@@ -44,10 +46,11 @@ class FSTParser:
                 print('not tokens!')
                 break
             self.next_state()
-            token = self.consume_token()
+            token = Token()
+            self.parse_message(token)
             self.update_utterance(utt, token, False)
 
-        utt.print()
+       # utt.print()
 
 
     def consume_label(self):
@@ -68,23 +71,25 @@ class FSTParser:
         self.consume_whitespace()
         return ''.join(label_arr)
 
-    def consume_token(self):
+    #TODO: deal with this: tokens { name: "." pause_length: PAUSE_LONG phrase_break: true type: PUNCT }
+    # change name when the code is ready
+    def parse_message(self, tok, sem_class_label=None):
         field_order = []
-        token = Token()
-        key = ""
-        value = ""
         while True:
             label = self.consume_label()
             if label == '}':
-                return token
+                return
             field_order.append(label)
+            if label in SUBSTRUCTURE:
+                self.next_state()
+                self.parse_message(tok, sem_class_label=label)
+
             # add: going into sub-field, like cardinal { integer: ... }}? Parse that token here
             # else we have a value: (label like cardinal does not have a terminal value)
-            value = self.parse_field_value()
-            token.set_value({label: value})
+            else:
+                value = self.parse_field_value()
+                tok.set_value({label: value}, sem_class_label)
 
-            if label == 'cardinal':
-                break
 
         self.consume_whitespace()
 

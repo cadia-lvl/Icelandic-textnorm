@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import jsonpickle
 from enum import Enum
+import utterance_structure.semiotic_classes
 
 class UtteranceCollection:
 
@@ -16,7 +18,7 @@ class UtteranceCollection:
         self.collection.append(utt)
 
 
-class Utterance:
+class Utterance(object):
 
     def __init__(self, inp):
         self.original_sentence = inp
@@ -25,6 +27,10 @@ class Utterance:
         self.tokenized_string = ""
         self.classified = ""
 
+    def to_jsonpickle(self, filename):
+        json_enc = jsonpickle.encode(self)
+        with open(filename, 'w') as f:
+            f.write(json_enc)
 
     def print_classified(self):
         print(self.classified)
@@ -44,7 +50,7 @@ class Utterance:
             tok.print()
 
 
-class LinguisticStructure:
+class LinguisticStructure(object):
 
     def __init__(self, inp):
         self.ls_id = 0
@@ -53,24 +59,23 @@ class LinguisticStructure:
         self.words = []
 
 
-class TokenType(Enum):
-    WORD = 1
-    SEMIOTIC_CLASS = 2
-    PUNCT = 3
-    NEEDS_VERBALIZATION = 4
+class TokenType(str, Enum):
+    WORD = 'word'
+    SEMIOTIC_CLASS = 'sem_class'
+    PUNCT = 'punct'
+    NEEDS_VERBALIZATION = 'needs_verbal'
 
-class PauseLength(Enum):
-    PAUSE_NONE = 0
-    PAUSE_SHORT = 1
-    PAUSE_MEDIUM = 2
-    PAUSE_LONG = 3
+class PauseLength(str, Enum):
+    PAUSE_NONE = 'none'
+    PAUSE_SHORT = 'short'
+    PAUSE_MEDIUM = 'medium'
+    PAUSE_LONG = 'long'
 
 
-class Token:
+class Token(object):
 
     def __init__(self):
         self.token_type = None
-        #self.verify(token_type, sem_class, word)
         self.semiotic_class = None
         self.name = ''
         self.word = ''
@@ -80,12 +85,6 @@ class Token:
 
         self.start_index = 0
         self.end_index = 0
-
-    def verify(self, sem_class, word):
-        if self.token_type == TokenType.SEMIOTIC_CLASS and sem_class is None:
-            raise ValueError('TokenType SEMIOTIC_CLASS has to have an initialized semiotic class object!')
-        if self.token_type == TokenType.WORD and word is None:
-            raise ValueError('TokenType WORD has to have a word string!')
 
     def set_token_type(self, token_type):
         self.token_type = token_type
@@ -113,10 +112,37 @@ class Token:
             return True
         return False
 
-    def set_value(self, tuple):
+    def set_value(self, tuple, sem_class_label):
         if 'name:' in tuple:
             self.name = tuple['name:']
             self.word = self.name.lower()
+
+        if 'pause_length:' in tuple:
+            val = tuple['pause_length:']
+            if val == 'PAUSE_SHORT':
+                self.pause_length = PauseLength.PAUSE_SHORT
+            elif val == 'PAUSE_MEDIUM':
+                self.pause_length = PauseLength.PAUSE_MEDIUM
+            elif val == 'PAUSE_LONG':
+                self.pause_length = PauseLength.PAUSE_LONG
+
+        if 'phrase_break:' in tuple:
+            if tuple['phrase_break:'] == 'true':
+                self.phrase_break = True
+
+        if 'type:' in tuple:
+            if tuple['type:'] == 'PUNCT':
+                self.token_type = TokenType.PUNCT
+
+        if sem_class_label:
+            self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
+            self.token_type = TokenType.SEMIOTIC_CLASS
+
+
+    def get_semiotic_class(self, label, content):
+
+        if label == 'cardinal':
+            return utterance_structure.semiotic_classes.Cardinal(content['integer:'])
 
     def print(self):
         print('TokenType: ' + str(self.token_type))
@@ -126,6 +152,15 @@ class Token:
         print('Pause length: ' + str(self.pause_length))
         print('Phrase break: ' + str(self.phrase_break))
 
+"""
+class EnumEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if type(obj) in TokenType.values():
+            return {"__enum__": str(obj)}
+        elif type(obj) in PauseLength.values():
+            return {"__enum__": str(obj)}
+        return json.JSONEncoder.default(self, obj)
+"""
 
 
 
