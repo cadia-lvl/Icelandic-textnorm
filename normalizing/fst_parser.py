@@ -28,8 +28,7 @@ class FSTParser:
         self.token_start = 0
         self.last_token_end = 0
         self.num_states = classifier_fst.num_states()
-        classifier = Classifier()
-        self.utf8symbols = classifier.utf8_symbols
+        self.utf8symbols = pn.SymbolTable.read_text('data/utf8.syms')
 
         self.token_name = '' # does this belong here?
 

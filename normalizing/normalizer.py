@@ -17,6 +17,7 @@ import json
 from fst_parser import FSTParser
 from tokenizer import Tokenizer
 from classifier import Classifier
+from verbalizer import Verbalizer
 from utterance_structure.utt_coll import UtteranceCollection
 from utterance_structure.utt_coll import Utterance
 
@@ -27,6 +28,8 @@ class Normalizer:
         self.utterance_collection = UtteranceCollection()
         self.tok = Tokenizer()
         self.classifier = Classifier()
+        self.verbalizer = Verbalizer()
+
 
     def normalize_utterance(self, utt):
 
@@ -36,7 +39,9 @@ class Normalizer:
         utt.classified = stringified
         parser = FSTParser(classified_fst)
         parser.parse_tokens_from_fst(utt)
-        utt.to_jsonpickle(utt.original_sentence + '_utt.json')
+        #utt.to_jsonpickle(utt.original_sentence + '_utt.json')
+        self.verbalizer.verbalize(utt)
+
 
     def normalize(self):
         sentence_list = self.tok.tokenize_sentence(self.original_text)
@@ -48,11 +53,12 @@ class Normalizer:
     def print_normalized_text(self):
         for utt in self.utterance_collection.collection:
             utt.print_classified()
+            utt.print_normalized()
 
 def main():
 
-    input_text = "fer fram 7.-10. nóvember."
-    input_text_x = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
+    input_text_x = "fer fram 10 nóvember."
+    input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
                  "húsi, loksins hvað þau skulda Arion banka. Af þessum 240 atriðum eru yfir 150 íslensk bönd en " \
                  "hátíðin fer fram 7.-10. nóvember. Draumur þeirra að byggja fallegt hús við Elliðavatn í Kópavogi varð " \
                  "að martröð við fall bankanna í október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í " \
@@ -60,13 +66,16 @@ def main():
 
     norm = Normalizer(input_text)
     norm.normalize()
-    #norm.print_normalized_text()
+
+    norm.print_normalized_text()
+    """
     with open("utterance.json") as read_file:
         utt_in = read_file.read()
         utt_obj = jsonpickle.decode(utt_in)
         print("Decoded:")
         print(utt_obj.print_classified())
         print(utt_obj.original_sentence)
+    """
 
 if __name__ == '__main__':
     main()

@@ -22,6 +22,7 @@ class Utterance(object):
 
     def __init__(self, inp):
         self.original_sentence = inp
+        self.normalized_sentence = "I'm normalized" # or same as original at initialization time?
         self.ling_structure = LinguisticStructure(inp)
         self.tokenized = []
         self.tokenized_string = ""
@@ -40,6 +41,9 @@ class Utterance(object):
 
     def print_original(self):
         print(self.original_sentence)
+
+    def print_normalized(self):
+        print(self.normalized_sentence)
 
     def print(self):
         ling_struct = self.ling_structure
@@ -139,6 +143,7 @@ class Token(object):
             self.token_type = TokenType.SEMIOTIC_CLASS
 
 
+
     def get_semiotic_class(self, label, content):
 
         if label == 'cardinal':
@@ -152,15 +157,7 @@ class Token(object):
         print('Pause length: ' + str(self.pause_length))
         print('Phrase break: ' + str(self.phrase_break))
 
-"""
-class EnumEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if type(obj) in TokenType.values():
-            return {"__enum__": str(obj)}
-        elif type(obj) in PauseLength.values():
-            return {"__enum__": str(obj)}
-        return json.JSONEncoder.default(self, obj)
-"""
+
 
 
 
