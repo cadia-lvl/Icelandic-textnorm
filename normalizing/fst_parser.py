@@ -19,7 +19,7 @@ SUBSTRUCTURE = ['cardinal']
 
 class FSTParser:
 
-    def __init__(self, classifier_fst):
+    def __init__(self, classifier_fst, utf8symbols='data/utf8.syms'):
         self.fst = classifier_fst
         self.state = self.fst.start()
         self.last_state = self.fst.start()
@@ -28,7 +28,7 @@ class FSTParser:
         self.token_start = 0
         self.last_token_end = 0
         self.num_states = classifier_fst.num_states()
-        self.utf8symbols = pn.SymbolTable.read_text('data/utf8.syms')
+        self.utf8symbols = pn.SymbolTable.read_text(utf8symbols)
 
         self.token_name = '' # does this belong here?
 

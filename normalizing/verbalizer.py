@@ -18,6 +18,7 @@ class Verbalizer:
     def __init__(self, path_to_grammar='/Users/anna/sparrowhawk/sparrowhawk/documentation/grammars/ice/verbalize_serialization/ALL'):
         self.thrax_grammar = pn.Fst.read(path_to_grammar)
         self.thrax_grammar.arcsort()
+        self.lm = pn.Fst.read('/Users/anna/PycharmProjects/text_normalization/normalizing/data/gigacorpus_for_lm.fst')
         self.compiler = FST_Compiler()
         self.sil = 'sil'
 
@@ -62,9 +63,20 @@ class Verbalizer:
 
     def disambiguate(self, sent_arr):
         # TODO: language model disambiguation
-        verbalized_arr = [wrd for sublist in sent_arr for wrd in sublist]
-        verbalized = ' '.join(verbalized_arr)
-        return verbalized
+        word_fst = self.compiler.fst_stringcompile_words(sent_arr)
+        word_fst.draw('verb.dot')
+        word_fst.set_output_symbols(self.compiler.word_symbols)
+        word_fst.optimize()
+        word_fst.project(True)
+        word_fst.arcsort()
+        word_fst.draw('verb_final.dot')  # tveir:tveir
+        best_exp = pn.intersect(word_fst, self.lm)
+        best_exp.optimize()
+        shortest_path = pn.shortestpath(best_exp).optimize()
+        normalized_text = shortest_path.stringify(token_type=self.compiler.word_symbols)
+        print(normalized_text)
+
+        return normalized_text
 
 def main():
 

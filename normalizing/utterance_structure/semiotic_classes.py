@@ -24,6 +24,19 @@ class Cardinal:
     def grammar_attributes(self):
         return [('integer:', self.integer)]
 
+class Ordinal:
+
+    def __init__(self, val, preserve_ord=False):
+        self.name = 'cardinal'
+        self.integer = val
+        self.preserve_order = preserve_ord
+
+    def __str__(self):
+        return 'Ordinal integer: ' + self.integer
+
+    def grammar_attributes(self):
+        return [('integer:', self.integer)]
+
 
 def main():
     sem = SemioticClasses()

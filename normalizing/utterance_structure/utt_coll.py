@@ -148,6 +148,8 @@ class Token(object):
 
         if label == 'cardinal':
             return utterance_structure.semiotic_classes.Cardinal(content['integer:'])
+        if label == 'ordinal':
+            return utterance_structure.semiotic_classes.Ordinal(content['integer:'])
 
     def print(self):
         print('TokenType: ' + str(self.token_type))

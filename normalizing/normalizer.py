@@ -44,11 +44,15 @@ class Normalizer:
 
 
     def normalize(self):
+        normalized_text = []
         sentence_list = self.tok.tokenize_sentence(self.original_text)
         for sent in sentence_list:
             self.utterance_collection.add_utterance(Utterance(sent))
         for utt in self.utterance_collection.collection:
             self.normalize_utterance(utt)
+            normalized_text.append(utt.normalized_sentence)
+
+        return ' '.join(normalized_text)
 
     def print_normalized_text(self):
         for utt in self.utterance_collection.collection:
@@ -57,8 +61,8 @@ class Normalizer:
 
 def main():
 
-    input_text_x = "fer fram 10 nóvember."
-    input_text = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
+    input_text = "þessi 3 börn"
+    input_text_x = "Tíu árum eftir hrun vita Björn Arnarson og Halla Sigrún Gylfadóttir, hjón með tvö börn í hálfkláruðu " \
                  "húsi, loksins hvað þau skulda Arion banka. Af þessum 240 atriðum eru yfir 150 íslensk bönd en " \
                  "hátíðin fer fram 7.-10. nóvember. Draumur þeirra að byggja fallegt hús við Elliðavatn í Kópavogi varð " \
                  "að martröð við fall bankanna í október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í " \

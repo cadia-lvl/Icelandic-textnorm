@@ -13,8 +13,9 @@ import pywrapfst as fst
 
 class FST_Compiler:
 
-    def __init__(self, sym_tab='data/utf8.syms'):
+    def __init__(self, sym_tab='data/utf8.syms', word_syms='data/lm_word_symbol.sym'):
         self.utf8_symbols = pn.SymbolTable.read_text(sym_tab)
+        self.word_symbols = pn.SymbolTable.read_text(word_syms)
         self.attr_div = '|'
 
 
@@ -105,6 +106,60 @@ class FST_Compiler:
 
         input_fst = compiler.compile()
         return input_fst
+
+    def get_basic_word_fst(self, text_arr):
+
+        compiler = fst.Compiler()
+        state_counter = 0
+        next_state = 0
+        for arr in text_arr:
+            # single word, single expansion
+            if len(arr) == 1:
+                for w in arr:
+                    uni = self.word_symbols.find(w)
+                    if uni == -1:
+                        conv = '<unk>'
+                        uni = self.word_symbols.find(conv)
+                    from_state = state_counter
+                    if next_state != 0:
+                        to_state = next_state
+                        state_counter = next_state - 1
+                        next_state = 0
+                    else:
+                        to_state = state_counter + 1
+                    entry = "{} {} {} {}\n".format(from_state, to_state, uni, uni)
+                    compiler.write(entry)
+                    state_counter += 1
+
+            # multiple verbalization possibilities
+            # we are working char by char, so store the state_counter, such that
+            # all possibilities have the same from_state
+            else:
+                from_state = state_counter
+                to_state = state_counter + 1
+                for i, elem in enumerate(arr):
+                    uni = self.word_symbols.find(elem)
+                    if uni == -1:
+                        conv = '<unk>'
+                        uni = self.word_symbols.find(conv)
+                    entry = "{} {} {} {}\n".format(from_state, to_state, uni, uni)
+                    compiler.write(entry)
+                    state_counter += 1
+
+                next_state = to_state + 1
+                state_counter = to_state
+
+        compiler.write("{}\n\n".format(state_counter))
+
+        input_fst = compiler.compile()
+        return input_fst
+
+    def fst_stringcompile_words(self, text_arr):
+        input_fst = self.get_basic_word_fst(text_arr)
+        pynini_fst = pn.Fst.from_pywrapfst(input_fst)
+
+        return pynini_fst
+
 
     def extract_verbalization(self, verbalized_fst):
         transitions = self.extract_transitions_graph(verbalized_fst)
