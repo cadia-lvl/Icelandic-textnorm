@@ -15,11 +15,12 @@ from utt_coll import TokenType
 
 class Verbalizer:
 
-    def __init__(self, path_to_grammar='/Users/anna/sparrowhawk/sparrowhawk/documentation/grammars/ice/verbalize_serialization/ALL'):
+    def __init__(self, path_to_grammar, path_to_lm, utf8_symbols, word_symbols):
         self.thrax_grammar = pn.Fst.read(path_to_grammar)
         self.thrax_grammar.arcsort()
-        self.lm = pn.Fst.read('/Users/anna/PycharmProjects/text_normalization/normalizing/data/gigacorpus_for_lm.fst')
-        self.compiler = FST_Compiler()
+        self.lm = pn.Fst.read(path_to_lm)
+        self.word_symbols = word_symbols
+        self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.sil = 'sil'
 
     def verbalize(self, utt):
@@ -65,7 +66,7 @@ class Verbalizer:
         # TODO: language model disambiguation
         word_fst = self.compiler.fst_stringcompile_words(sent_arr)
         word_fst.draw('verb.dot')
-        word_fst.set_output_symbols(self.compiler.word_symbols)
+        word_fst.set_output_symbols(self.word_symbols)
         word_fst.optimize()
         word_fst.project(True)
         word_fst.arcsort()
@@ -73,7 +74,7 @@ class Verbalizer:
         best_exp = pn.intersect(word_fst, self.lm)
         best_exp.optimize()
         shortest_path = pn.shortestpath(best_exp).optimize()
-        normalized_text = shortest_path.stringify(token_type=self.compiler.word_symbols)
+        normalized_text = shortest_path.stringify(token_type=self.word_symbols)
         print(normalized_text)
 
         return normalized_text

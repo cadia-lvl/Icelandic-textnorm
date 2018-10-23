@@ -19,7 +19,7 @@ SUBSTRUCTURE = ['cardinal']
 
 class FSTParser:
 
-    def __init__(self, classifier_fst, utf8symbols='data/utf8.syms'):
+    def __init__(self, classifier_fst, utf8_symbols):
         self.fst = classifier_fst
         self.state = self.fst.start()
         self.last_state = self.fst.start()
@@ -28,7 +28,7 @@ class FSTParser:
         self.token_start = 0
         self.last_token_end = 0
         self.num_states = classifier_fst.num_states()
-        self.utf8symbols = pn.SymbolTable.read_text(utf8symbols)
+        self.utf8_symbols = utf8_symbols
 
         self.token_name = '' # does this belong here?
 
@@ -58,9 +58,9 @@ class FSTParser:
             if (self.out_label == SPACE and not label_arr) or self.out_label == 0:
                 continue
             elif not self.is_separator(self.out_label):
-                label_arr.append(self.utf8symbols.find(self.out_label).decode('utf-8'))
+                label_arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
             elif self.out_label == CURLY_CLOSE and not label_arr:
-                label_arr.append(self.utf8symbols.find(self.out_label).decode('utf-8'))
+                label_arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
                 break
             else:
                 if self.out_label != COLON and self.out_label != SPACE:
@@ -103,14 +103,14 @@ class FSTParser:
                 self.prev_state() # unconsume the curly brace
                 return ''.join(value_arr)
             elif self.out_label:
-                value_arr.append(self.utf8symbols.find(self.out_label).decode('utf-8'))
+                value_arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
 
 
     def parse_quoted_field_value(self, arr):
 
         while self.next_state():
             if self.out_label != QUOTES:
-                arr.append(self.utf8symbols.find(self.out_label).decode('utf-8'))
+                arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
             else:
                 return arr
 
@@ -127,7 +127,7 @@ class FSTParser:
             if self.inp_label == SPACE and not self.token_name:
                 self.token_start += 1
             else:
-                self.token_name + self.utf8symbols.find(self.inp_label).decode('utf-8')
+                self.token_name + self.utf8_symbols.find(self.inp_label).decode('utf-8')
 
         self.last_state = self.state
         self.state = arc_it.value().nextstate

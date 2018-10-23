@@ -13,9 +13,9 @@ import pywrapfst as fst
 
 class FST_Compiler:
 
-    def __init__(self, sym_tab='data/utf8.syms', word_syms='data/lm_word_symbol.sym'):
-        self.utf8_symbols = pn.SymbolTable.read_text(sym_tab)
-        self.word_symbols = pn.SymbolTable.read_text(word_syms)
+    def __init__(self, utf8_symbols, word_symbols):
+        self.utf8_symbols = utf8_symbols
+        self.word_symbols = word_symbols
         self.attr_div = '|'
 
 

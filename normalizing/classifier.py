@@ -12,17 +12,18 @@ from fst_compiler import FST_Compiler
 
 class Classifier:
 
-    def __init__(self, path_to_grammar='/Users/anna/sparrowhawk/sparrowhawk/documentation/grammars/ice/classify/TOKENIZE_AND_CLASSIFY'):
+    def __init__(self, path_to_grammar, utf8_symbols):
         self.thrax_grammar = pn.Fst.read(path_to_grammar)
         self.thrax_grammar.arcsort()
+        self.utf8_symbols = utf8_symbols
 
     def classify(self, text):
-        compiler = FST_Compiler()
+        compiler = FST_Compiler(self.utf8_symbols, None)
         inp_fst = compiler.fst_stringcompile(text)
         all_fst = pn.compose(inp_fst, self.thrax_grammar)
         shortest_path = pn.shortestpath(all_fst).optimize()
 
-        classified = shortest_path.stringify(token_type=compiler.utf8_symbols)
+        classified = shortest_path.stringify(token_type=self.utf8_symbols)
         classified = classified.replace(' ', '')
         classified = classified.replace('0x0020', ' ')
         return shortest_path, classified
