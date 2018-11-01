@@ -19,13 +19,22 @@ class TestNormalizer(unittest.TestCase):
         test_tuples = self.get_ordinal_test_tuples()
         normalizer_dir = os.getcwd()[:-4]
         norm = Normalizer(working_dir=normalizer_dir)
-       # for tuple in test_tuples:
-       #     normalized = norm.normalize(tuple[0])
-       #     norm.print_normalized_text()
-            #self.assertEqual(tuple[1], normalized)
+        for tuple in test_tuples:
+            normalized = norm.normalize(tuple[0])
+            norm.print_normalized_text()
+            self.assertEqual(tuple[1], normalized)
+
+    def test_unk(self):
+        #TODO: recover <unk>
+        test_tuple = ('5 þettaorðerekkitil', 'fimm þettaorðerekkitil')
+        normalizer_dir = os.getcwd()[:-4]
+        norm = Normalizer(working_dir=normalizer_dir)
+        normalized = norm.normalize(test_tuple[0])
+        norm.print_normalized_text()
+        self.assertEqual(test_tuple[1], normalized)
 
 
-    def get_cardinal_test_tuples(self):
+    def get__basic_cardinal_test_tuples(self):
         tuple_list = []
         tuple_list.append(('þessi 2 börn', 'þessi tvö börn'))
         tuple_list.append(('þessar 2 konur', 'þessar tvær konur'))
@@ -39,9 +48,40 @@ class TestNormalizer(unittest.TestCase):
 
         return tuple_list
 
+    def get_cardinal_test_tuples(self):
+        tuple_list = []
+        tuple_list.append(('að 54 börn', 'að fimmtíu og fjögur börn'))
+        tuple_list.append(('2 milljarða', 'tvo milljarða'))
+        tuple_list.append(('fékk síðan 902 milljarða', 'fékk síðan níu hundruð og tvo milljarða'))
+        tuple_list.append(('spilaði samtals 199 leiki', 'spilaði samtals eitt hundrað níutíu og níu leiki'))
+        tuple_list.append(('sem er 21 prósent skotnýting', 'sem er tuttugu og eitt prósent skotnýting'))
+        tuple_list.append(('með að skora 21 stig', 'með að skora tuttugu og eitt stig'))
+        tuple_list.append(('21 kona', 'tuttugu og ein kona'))
+        tuple_list.append(('eftir 21 leik', 'eftir tuttugu og einn leik'))
+        tuple_list.append(('sem er 21 árs', 'sem er tuttugu og eins árs'))
+        tuple_list.append(('er 4 ára gamall', 'er fjögurra ára gamall'))
+        tuple_list.append(('er 54 ára gamall', 'er fimmtíu og fjögurra ára gamall'))
+        tuple_list.append(('næstum því 54 milljónir', 'næstum því fimmtíu og fjórar milljónir'))
+        tuple_list.append(('tæplega 54 prósent atkvæða', 'tæplega fimmtíu og fjögur prósent atkvæða'))
+        tuple_list.append(('spilaði 54 leiki', 'spilaði fimmtíu og fjóra leiki'))
+
+
+        return tuple_list
+
+
     def get_ordinal_test_tuples(self):
         tuple_list = []
-        tuple_list.append(('1. janúar', 'fyrsti janúar'))
+        tuple_list.append(('1. janúar', 'fyrsta janúar'))
+        tuple_list.append(('2. febrúar', 'öðrum febrúar'))
+        tuple_list.append(('3. mars', 'þriðja mars'))
+        tuple_list.append(('4. apríl', 'fjórða apríl'))
+
+        return tuple_list
+
+
+    def get_unk_test_tuples(self):
+        tuple_list = []
+        tuple_list.append(('að 54 aðildarsambönd', 'að fimmtíu og fjögur aðildarsambönd'))
 
         return tuple_list
 
