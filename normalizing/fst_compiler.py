@@ -169,19 +169,27 @@ class FST_Compiler:
 
     def extract_transitions_graph(self, inp_fst):
         transitions = {}
-        self.set_transitions_from_state(inp_fst, inp_fst.start(), transitions)
-        for i in range(inp_fst.start(), inp_fst.num_states() - 1):
+        final_state = self.find_final_state(inp_fst)
+        self.set_transitions_from_state(inp_fst, inp_fst.start(), transitions, final_state)
+        num_states = inp_fst.num_states()
+        for i in range(inp_fst.start(), num_states):
             if i == inp_fst.start():
                 continue
-            self.set_transitions_from_state(inp_fst, i, transitions)
+            self.set_transitions_from_state(inp_fst, i, transitions, final_state)
 
         return transitions
 
-    def set_transitions_from_state(self, inp_fst, start, trans_dict):
+    def set_transitions_from_state(self, inp_fst, start, trans_dict, final_state):
         if start < 0:
             # somehow an empty fst got here
             return
         arc_it = inp_fst.arcs(start)
+        final_weight = inp_fst.final(start)
+
+        if final_weight != pn.Weight.Zero(final_weight.type()):
+            if final_state != start:
+                trans_dict[start] = [(final_state, '')]
+
         while not arc_it.done():
             val = arc_it.value()
             next_state = val.nextstate
@@ -191,6 +199,24 @@ class FST_Compiler:
             else:
                 trans_dict[start] = [(next_state, label)]
             arc_it.next()
+
+    def find_final_state(self, inp_fst):
+        # sometimes the highest numbered state is not the final state - or not a possible final state at all
+        # we don't wan't the default final arc leading to that state, but to the next lower state that is a final state
+        # Example: path is: ... 21, 23 [possible final], 24, 22 [absolute final]
+        # Final state has a weight != Weight.Zero and its arc_iterator is done.
+
+        final_state = inp_fst.num_states() - 1
+
+        while final_state > 0:
+            state_weight = inp_fst.final(final_state)
+            arc_it = inp_fst.arcs(final_state)
+            if state_weight != pn.Weight.Zero(state_weight.type()) and arc_it.done():
+                return final_state
+
+            final_state -= 1
+
+        return final_state
 
     def find_all_paths(self, graph, start, end, path=[]):
         """
@@ -217,22 +243,57 @@ class FST_Compiler:
 
         return paths
 
-    @staticmethod
-    def extract_words_from_paths(paths, transitions):
+    def extract_words_from_paths(self, paths, transitions):
+        # Problem: ['tvöo', 'tvær', 'tveir', 'tveimur', 'tveggj']
+
         words = []
         for path in paths:
             w = ''
             for i, elem in enumerate(path):
+                #print(w)
                 if i < len(path) - 1:
-                    label_arr = transitions[elem]
-                    for tup in label_arr:
-                        if tup[0] == path[i + 1]:
-                            if tup[1] == '0x0020':
+                    label_arr = self.sort_tuples(transitions[elem])
+
+                    if len(label_arr) > 1 and self.is_same_transition(label_arr):
+                        # deal with same source-dest state with different arcs (e.g. fyrsti, fyrsta, fyrstu)
+                        #TODO: remove duplicate code
+                        current_tup = label_arr[0]
+
+                        if current_tup[0] == path[i + 1]:
+                            self.remove_tupel(current_tup, transitions, elem)
+                            if current_tup[1] == '0x0020':
                                 w = w + ' '
                             else:
-                                w = w + tup[1]
+                                w = w + current_tup[1]
+                    else:
+                        for tup in label_arr:
+                            if tup[0] == path[i + 1]:
+                                if tup[1] == '0x0020':
+                                    w = w + ' '
+                                else:
+                                    w = w + tup[1]
 
             words.append(w)
 
         return words
+
+    def sort_tuples(self, tuple_arr):
+        return sorted(tuple_arr, key=lambda x: x[0])
+
+
+    def remove_tupel(self, tupel, tuple_dict, elem):
+        arr = tuple_dict[elem]
+        arr.remove(tupel)
+        tuple_dict[elem] = arr
+
+    @staticmethod
+    def is_same_transition(label_arr):
+        dest_states = set()
+        for tup in label_arr:
+            dest_states.add(tup[0])
+
+        if len(dest_states) < len(label_arr):
+            return True
+        return False
+
 
