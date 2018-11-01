@@ -27,7 +27,7 @@ class Cardinal:
 class Ordinal:
 
     def __init__(self, val, preserve_ord=False):
-        self.name = 'cardinal'
+        self.name = 'ordinal'
         self.integer = val
         self.preserve_order = preserve_ord
 
