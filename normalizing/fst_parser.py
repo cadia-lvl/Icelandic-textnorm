@@ -14,7 +14,7 @@ CURLY_CLOSE = 125
 
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
 
-SUBSTRUCTURE = ['cardinal']
+SUBSTRUCTURE = ['cardinal', 'ordinal']
 
 
 class FSTParser:
