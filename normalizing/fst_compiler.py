@@ -7,16 +7,19 @@ Provides methods for FST stringcompile
 
 
 """
-
+import queue
 import pynini as pn
 import pywrapfst as fst
+
 
 class FST_Compiler:
 
     def __init__(self, utf8_symbols, word_symbols):
         self.utf8_symbols = utf8_symbols
         self.word_symbols = word_symbols
+        self.current_oov_queue = None
         self.attr_div = '|'
+        self.unk = '<unk>'
 
 
     def fst_stringcompile(self, text):
@@ -108,7 +111,7 @@ class FST_Compiler:
         return input_fst
 
     def get_basic_word_fst(self, text_arr):
-
+        self.current_oov_queue = queue.Queue()
         compiler = fst.Compiler()
         state_counter = 0
         next_state = 0
@@ -118,8 +121,9 @@ class FST_Compiler:
                 for w in arr:
                     uni = self.word_symbols.find(w)
                     if uni == -1:
-                        conv = '<unk>'
+                        conv = self.unk
                         uni = self.word_symbols.find(conv)
+                        self.current_oov_queue.put(w)
                     from_state = state_counter
                     if next_state != 0:
                         to_state = next_state
@@ -158,14 +162,14 @@ class FST_Compiler:
         input_fst = self.get_basic_word_fst(text_arr)
         pynini_fst = pn.Fst.from_pywrapfst(input_fst)
 
-        return pynini_fst
+        return pynini_fst, self.current_oov_queue
 
 
     def extract_verbalization(self, verbalized_fst):
         transitions = self.extract_transitions_graph(verbalized_fst)
         paths = self.find_all_paths(transitions, 0, verbalized_fst.num_states())
         verbalizations = self.extract_words_from_paths(paths, transitions)
-        return verbalizations
+        return verbalizations, self.current_oov_queue
 
     def extract_transitions_graph(self, inp_fst):
         transitions = {}

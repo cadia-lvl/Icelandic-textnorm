@@ -5,7 +5,7 @@
 Verbalize a semiotic class token.
 
 """
-
+import queue
 import pynini as pn
 import semiotic_classes
 from fst_compiler import FST_Compiler
@@ -26,6 +26,8 @@ class Verbalizer:
 
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.sil = 'sil'
+        self.unk = '<unk>'
+        self.oov_queue = queue.Queue()
 
     def verbalize(self, utt):
         tokens = utt.ling_structure.tokens
@@ -37,10 +39,11 @@ class Verbalizer:
                 if len(words) > 1:
                     needs_disambiguation = True
             elif tok.semiotic_class == TokenType.PUNCT:
-                words = ['sil']
+                words = [self.sil]
             else:
                 words = [tok.word]
 
+            # make sure we flatten out possible nested lists
             list_to_append = list(filter(lambda x: isinstance(x, list), words))
             if list_to_append:
                 for elem in list_to_append:
@@ -62,7 +65,7 @@ class Verbalizer:
     def verbalize_token(self, token):
         verbalized_fst = self.create_verbalized_fst(token)
         # TODO: fall back mechanism when verbalizing grammar fails, resulting in an empty FST
-        verbalized_arr = self.compiler.extract_verbalization(verbalized_fst)
+        verbalized_arr, self.oov_queue = self.compiler.extract_verbalization(verbalized_fst)
         single_words_arr = self.split_verbalized_arr(verbalized_arr)
         return single_words_arr
 
@@ -101,10 +104,16 @@ class Verbalizer:
 
         return result_arr
 
+    def insert_original_oov(self, text):
+        text_arr = text.split()
+        for ind, wrd in enumerate(text_arr):
+            if wrd == self.unk:
+                text_arr[ind] = self.oov_queue.get()
+        return ' '.join(text_arr)
 
     def disambiguate(self, sent_arr):
         # TODO: language model disambiguation
-        word_fst = self.compiler.fst_stringcompile_words(sent_arr)
+        word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(sent_arr)
         word_fst.draw('verb.dot')
         word_fst.set_output_symbols(self.word_symbols)
         word_fst.optimize()
@@ -116,6 +125,8 @@ class Verbalizer:
         best_exp.draw('best.dot')
         shortest_path = pn.shortestpath(best_exp).optimize()
         normalized_text = shortest_path.stringify(token_type=self.word_symbols)
+        if self.oov_queue:
+            normalized_text = self.insert_original_oov(normalized_text)
         print(normalized_text)
 
         return normalized_text
