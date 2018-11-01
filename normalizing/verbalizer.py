@@ -18,8 +18,12 @@ class Verbalizer:
     def __init__(self, path_to_grammar, path_to_lm, utf8_symbols, word_symbols):
         self.thrax_grammar = pn.Fst.read(path_to_grammar)
         self.thrax_grammar.arcsort()
-        self.lm = pn.Fst.read(path_to_lm)
         self.word_symbols = word_symbols
+        self.lm = pn.Fst.read(path_to_lm)
+        self.lm.set_input_symbols(self.word_symbols)
+        self.lm.set_output_symbols(self.word_symbols)
+        self.lm.arcsort()
+
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.sil = 'sil'
 
@@ -36,7 +40,15 @@ class Verbalizer:
                 words = ['sil']
             else:
                 words = [tok.word]
-            sentence_arr.append(words)
+
+            list_to_append = list(filter(lambda x: isinstance(x, list), words))
+            if list_to_append:
+                for elem in list_to_append:
+                    sentence_arr.append(elem)
+            else:
+                sentence_arr.append(words)
+
+        print(str(sentence_arr))
 
         if needs_disambiguation:
             verbalized = self.disambiguate(sentence_arr)
@@ -51,16 +63,44 @@ class Verbalizer:
         verbalized_fst = self.create_verbalized_fst(token)
         # TODO: fall back mechanism when verbalizing grammar fails, resulting in an empty FST
         verbalized_arr = self.compiler.extract_verbalization(verbalized_fst)
-
-        return verbalized_arr
+        single_words_arr = self.split_verbalized_arr(verbalized_arr)
+        return single_words_arr
 
     def create_verbalized_fst(self, token):
         token_fst = self.compiler.fst_stringcompile_token(token)
+        token_fst.draw('token.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
+        verbalized_fst.draw('verbalized.dot')
         verbalized_fst.optimize()
+        verbalized_fst.draw('optimized.dot')
         verbalized_fst.project(True)
+        verbalized_fst.draw('projected.dot')
         verbalized_fst.rmepsilon()
+        verbalized_fst.draw('no_epsilon.dot')
         return verbalized_fst
+
+    def split_verbalized_arr(self, verbalized_arr):
+        # ['níu hundruð og tvö', 'níu hundruð og tvær', 'níu hundruð og tveir'] ->
+        # [['níu'], ['hundruð'], ['og'], ['tvö', 'tvær', 'tveir']] (split into single words)
+        # ['tvö', 'tvær', 'tveir'] -> ['tvö', 'tvær', 'tveir'] (do nothing)
+
+        # TODO: control for same length of all arrays
+        result_arr = []
+        if len(verbalized_arr[0].split()) == 1:
+            return verbalized_arr
+        for elem in verbalized_arr[0].split():
+            result_arr.append([elem])
+
+        for i in range(1, len(verbalized_arr)):
+            elem_arr = verbalized_arr[i].split()
+            for j in range(len(elem_arr)):
+                if result_arr[j][0] == elem_arr[j]:
+                    continue
+                else:
+                    result_arr[j].append(elem_arr[j])
+
+        return result_arr
+
 
     def disambiguate(self, sent_arr):
         # TODO: language model disambiguation
@@ -73,6 +113,7 @@ class Verbalizer:
         word_fst.draw('verb_final.dot')  # tveir:tveir
         best_exp = pn.intersect(word_fst, self.lm)
         best_exp.optimize()
+        best_exp.draw('best.dot')
         shortest_path = pn.shortestpath(best_exp).optimize()
         normalized_text = shortest_path.stringify(token_type=self.word_symbols)
         print(normalized_text)
