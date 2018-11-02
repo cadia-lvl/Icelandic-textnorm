@@ -87,7 +87,7 @@ class FSTParser:
             # else we have a value: (label like cardinal does not have a terminal value)
             else:
                 value = self.parse_field_value()
-                tok.set_value({label: value}, sem_class_label)
+                tok.set_value({label: value}, value, sem_class_label)
 
 
         self.consume_whitespace()
@@ -159,13 +159,11 @@ class FSTParser:
         self.last_token_end = token_end - 1
         token.end_index = self.last_token_end
 
-        if token.has_name():
-            token.set_wordid(token.name)
+        if token.has_word():
+            token.set_wordid(token.word)
             token.set_token_type(TokenType.WORD)
-        else:
-            token.set_name(self.token_name)
-            if set_semiotic_class:
-                token.set_token_type(TokenType.SEMIOTIC_CLASS)
+        elif set_semiotic_class:
+            token.set_token_type(TokenType.SEMIOTIC_CLASS)
 
         utt.ling_structure.tokens.append(token)
 
