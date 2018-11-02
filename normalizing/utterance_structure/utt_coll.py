@@ -87,6 +87,7 @@ class Token(object):
         self.pause_length = PauseLength.PAUSE_NONE
         self.phrase_break = False
 
+        self.verbalization_failed = False
         self.start_index = 0
         self.end_index = 0
 
@@ -111,12 +112,13 @@ class Token(object):
     def set_phrase_break(self, pb):
         self.phrase_break = pb
 
-    def has_name(self):
-        if self.name:
+    def has_word(self):
+        if self.word:
             return True
         return False
 
-    def set_value(self, tuple, sem_class_label):
+    def set_value(self, tuple, value, sem_class_label):
+        self.name = value
         if 'name:' in tuple:
             self.name = tuple['name:']
             self.word = self.name.lower()
