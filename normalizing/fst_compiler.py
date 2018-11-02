@@ -116,6 +116,8 @@ class FST_Compiler:
         state_counter = 0
         next_state = 0
         for arr in text_arr:
+            if not arr:
+                continue
             # single word, single expansion
             if len(arr) == 1:
                 for w in arr:
@@ -146,6 +148,7 @@ class FST_Compiler:
                     if uni == -1:
                         conv = '<unk>'
                         uni = self.word_symbols.find(conv)
+                        self.current_oov_queue.put(elem)
                     entry = "{} {} {} {}\n".format(from_state, to_state, uni, uni)
                     compiler.write(entry)
                     state_counter += 1
@@ -169,7 +172,7 @@ class FST_Compiler:
         transitions = self.extract_transitions_graph(verbalized_fst)
         paths = self.find_all_paths(transitions, 0, verbalized_fst.num_states())
         verbalizations = self.extract_words_from_paths(paths, transitions)
-        return verbalizations, self.current_oov_queue
+        return verbalizations
 
     def extract_transitions_graph(self, inp_fst):
         transitions = {}
@@ -258,17 +261,19 @@ class FST_Compiler:
                 if i < len(path) - 1:
                     label_arr = self.sort_tuples(transitions[elem])
 
-                    if len(label_arr) > 1 and self.is_same_transition(label_arr):
+                    if len(label_arr) > 1 and self.contains_same_transition(label_arr):
                         # deal with same source-dest state with different arcs (e.g. fyrsti, fyrsta, fyrstu)
                         #TODO: remove duplicate code
-                        current_tup = label_arr[0]
-
-                        if current_tup[0] == path[i + 1]:
-                            self.remove_tupel(current_tup, transitions, elem)
-                            if current_tup[1] == '0x0020':
-                                w = w + ' '
-                            else:
-                                w = w + current_tup[1]
+                        for tup in label_arr:
+                            current_tup = tup
+                            if current_tup[0] == path[i + 1]:
+                                if current_tup[1] == '0x0020':
+                                    w = w + ' '
+                                else:
+                                    w = w + current_tup[1]
+                                if self.has_same_state(current_tup, label_arr):
+                                    self.remove_tupel(current_tup, transitions, elem)
+                                break
                     else:
                         for tup in label_arr:
                             if tup[0] == path[i + 1]:
@@ -290,8 +295,21 @@ class FST_Compiler:
         arr.remove(tupel)
         tuple_dict[elem] = arr
 
+    def has_same_state(self, current_tup, tuple_arr):
+        ref_state = current_tup[0]
+        counter = 0
+        for tup in tuple_arr:
+            if tup[0] == ref_state:
+                counter += 1
+
+        if counter > 1:
+            return True
+
+        return False
+
+
     @staticmethod
-    def is_same_transition(label_arr):
+    def contains_same_transition(label_arr):
         dest_states = set()
         for tup in label_arr:
             dest_states.add(tup[0])
