@@ -51,6 +51,14 @@ class Normalizer:
         self.verbalizer = Verbalizer(verbalizer_grammar_file, lm_file, self.utf8_symbols, word_symbols)
 
 
+    def normalization_failed(self, utt):
+        for tok in utt.ling_structure.tokens:
+            if tok.verbalization_failed:
+                return True
+
+        return False
+
+
     def normalize_utterance(self, utt):
 
         utt.tokenized = self.tok.tokenize_words(utt.original_sentence)
@@ -61,6 +69,9 @@ class Normalizer:
         parser.parse_tokens_from_fst(utt)
         #utt.to_jsonpickle(utt.original_sentence + '_utt.json')
         self.verbalizer.verbalize(utt)
+
+        if self.normalization_failed(utt):
+            print('Normalization failed for "' + utt.original_sentence + '"')
 
 
     def normalize(self, text):
