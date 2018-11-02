@@ -27,7 +27,7 @@ class Verbalizer:
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.sil = 'sil'
         self.unk = '<unk>'
-        self.oov_queue = queue.Queue()
+        self.oov_queue = None
 
     def verbalize(self, utt):
         tokens = utt.ling_structure.tokens
@@ -38,6 +38,7 @@ class Verbalizer:
                 words = self.verbalize_token(tok)
                 if len(words) > 1:
                     needs_disambiguation = True
+
             elif tok.semiotic_class == TokenType.PUNCT:
                 words = [self.sil]
             else:
@@ -64,14 +65,26 @@ class Verbalizer:
 
     def verbalize_token(self, token):
         verbalized_fst = self.create_verbalized_fst(token)
-        # TODO: fall back mechanism when verbalizing grammar fails, resulting in an empty FST
-        verbalized_arr, self.oov_queue = self.compiler.extract_verbalization(verbalized_fst)
-        single_words_arr = self.split_verbalized_arr(verbalized_arr)
+        fst_size = verbalized_fst.num_states()
+        single_words_arr = []
+        if fst_size == 0:
+            # no verbalization through thrax grammar
+            print('no verbalization for ' + token.name)
+            # TODO: need to classify the utt again with separated tokens (2 0 1 9 instead of 2019 for example)
+            # how to do that, without getting stuck in an endless loop - one more try is ok, but then we have
+            # to make sure we return a result. Think of this while refactoring
+            token.verbalization_failed = True
+            for c in token.name:
+                single_words_arr.append([c])
+        else:
+            verbalized_arr = self.compiler.extract_verbalization(verbalized_fst)
+            single_words_arr = self.split_verbalized_arr(verbalized_arr)
         return single_words_arr
 
     def create_verbalized_fst(self, token):
         token_fst = self.compiler.fst_stringcompile_token(token)
         token_fst.draw('token.dot')
+        self.thrax_grammar.draw('thraxgrammar.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
         verbalized_fst.draw('verbalized.dot')
         verbalized_fst.optimize()
@@ -97,7 +110,8 @@ class Verbalizer:
         for i in range(1, len(verbalized_arr)):
             elem_arr = verbalized_arr[i].split()
             for j in range(len(elem_arr)):
-                if result_arr[j][0] == elem_arr[j]:
+                #if result_arr[j][0] == elem_arr[j]:
+                if elem_arr[j] in result_arr[j]:
                     continue
                 else:
                     result_arr[j].append(elem_arr[j])
@@ -108,7 +122,10 @@ class Verbalizer:
         text_arr = text.split()
         for ind, wrd in enumerate(text_arr):
             if wrd == self.unk:
-                text_arr[ind] = self.oov_queue.get()
+                if self.oov_queue.empty():
+                    print("OOV queue is empty - no replacement for <unk>!")
+                else:
+                    text_arr[ind] = self.oov_queue.get(False)
         return ' '.join(text_arr)
 
     def disambiguate(self, sent_arr):
@@ -127,6 +144,7 @@ class Verbalizer:
         normalized_text = shortest_path.stringify(token_type=self.word_symbols)
         if self.oov_queue:
             normalized_text = self.insert_original_oov(normalized_text)
+            self.oov_queue = None
         print(normalized_text)
 
         return normalized_text
