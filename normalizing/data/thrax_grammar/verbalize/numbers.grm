@@ -1,0 +1,76 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+zero = "0".utf8 : "núll".utf8;
+one_neutr = "1".utf8 : "eitt".utf8;
+one_mask = "1".utf8 : "einn".utf8;
+
+insspace = "".utf8 : " ".utf8;
+delzero = "0".utf8 : "".utf8;
+insand = "".utf8 : " og ".utf8;
+
+cardinal_simple = StringFile['cardinals.tsv', 'utf8', 'utf8'];
+export neutral_units2to9 = Optimize[StringFile['neutral_units2to9.txt', 'utf8', 'utf8']];
+teens = StringFile['teens.tsv', 'utf8', 'utf8'];
+ten = "10".utf8 : "tíu".utf8;
+teensplus = ten | teens;
+decades = StringFile['decades.tsv', 'utf8', 'utf8'];
+units_notNeutral = Optimize[StringFile['units_notNeutral.txt', 'utf8', 'utf8']];
+
+#two_lm = LoadFst['2_corpus.fst'];
+
+#export cardinal_simple_lm = (cardinal_simple @ two_lm);
+
+#export cardinal_simple_all = one_mask | cardinal_simple;
+
+export neutral_units = one_neutr | neutral_units2to9;
+export cardinal_simple_all = cardinal_simple;
+
+cardinal_decades = (decades util.Delete["0".utf8]) |
+  decades util.Insert[" og ".utf8] cardinal_simple;
+
+export numbers_20_to_99 = (decades util.Delete["0".utf8]) |
+  decades util.Insert[" og ".utf8] ((units_notNeutral <-3>) | (neutral_units <-4.0>));
+  
+export numbers_20_to_99_neutr = (decades util.Delete["0".utf8]) |
+  (decades util.Insert[" og ".utf8] neutral_units);
+
+hundreds = (one_neutr util.Insert[" hundrað".utf8]) | (cardinal_simple util.Insert[" hundruð".utf8]);
+
+# correct: only 'eitt hundrað' allowed, not 'einn/ein hundrað'
+cardinal_hundreds = Optimize[
+  hundreds util.Delete["0".utf8] util.Delete["0".utf8] |
+  (hundreds util.Delete["0".utf8] util.Insert[" og ".utf8] cardinal_simple_all) |
+  (hundreds util.Insert[" og ".utf8] teens) |
+  (hundreds util.Insert[" "] cardinal_decades)]
+;
+#1900, 1905, 1914
+year_hundreds = Optimize[teens insspace ("".utf8 : "hundruð".utf8)
+  ((delzero delzero) | (delzero insand neutral_units) | (insand teensplus) | (insspace numbers_20_to_99_neutr))];
+
+#2000, 2005, 2019
+year_mill = Optimize[neutral_units2to9 util.Insert[" ".utf8] ("".utf8 : "þúsund".utf8)
+  ((delzero delzero delzero) |
+  (delzero delzero insand neutral_units) |
+  (util.Delete["0".utf8] util.Insert[" og ".utf8] teensplus) |
+  (delzero insspace numbers_20_to_99_neutr))]
+;
+
+year = Optimize[year_hundreds | year_mill];
+#cardinal = Optimize[ zero | cardinal_simple_lm | teens | cardinal_decades | cardinal_hundreds];
+
+cardinal = Optimize[ zero | cardinal_simple_all | teens | cardinal_decades | cardinal_hundreds | year];
+
+#cardinal = Optimize[ year];
+
+#cardinal = Optimize[cardinal_simple_all];
+
+s = util.s;
+
+cardinal_markup =
+  util.Delete["cardinal|integer:"]
+  cardinal
+  util.Delete[s "|"]
+;
+
+export CARDINAL_MARKUP = Optimize[cardinal_markup];

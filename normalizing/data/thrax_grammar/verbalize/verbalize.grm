@@ -1,0 +1,5 @@
+import 'numbers.grm' as n;
+import 'ordinal.grm' as o;
+import 'verbatim.grm' as v;
+
+export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | v.VERBATIM];
