@@ -29,6 +29,14 @@ class Verbalizer:
         self.unk = '<unk>'
         self.oov_queue = None
 
+    def extract_string(self, arr):
+        res = []
+        for a in arr:
+            for elem in a:
+                res.append(elem)
+
+        return ''.join(res)
+
     def verbalize(self, utt):
         tokens = utt.ling_structure.tokens
         sentence_arr = []
@@ -36,6 +44,11 @@ class Verbalizer:
         for tok in tokens:
             if tok.token_type == TokenType.SEMIOTIC_CLASS:
                 words = self.verbalize_token(tok)
+                word_str = self.extract_string(words)
+                if word_str == tok.name and not utt.reclassify:
+                    #verbalization failed, we just have space separated token name
+                    tok.name = ' '.join(word_str)
+                    utt.reclassify = True
                 if len(words) > 1:
                     needs_disambiguation = True
 
@@ -54,6 +67,9 @@ class Verbalizer:
 
         print(str(sentence_arr))
 
+        if utt.reclassify:
+            return
+
         if needs_disambiguation:
             verbalized = self.disambiguate(sentence_arr)
 
@@ -70,7 +86,7 @@ class Verbalizer:
         if fst_size == 0:
             # no verbalization through thrax grammar
             print('no verbalization for ' + token.name)
-            # TODO: need to classify the utt again with separated tokens (2 0 1 9 instead of 2019 for example)
+            # TODO: need to classify the utt again with separated tokens (0 4 instead of 04 for example)
             # how to do that, without getting stuck in an endless loop - one more try is ok, but then we have
             # to make sure we return a result. Think of this while refactoring
             token.verbalization_failed = True
@@ -100,23 +116,60 @@ class Verbalizer:
         # [['níu'], ['hundruð'], ['og'], ['tvö', 'tvær', 'tveir']] (split into single words)
         # ['tvö', 'tvær', 'tveir'] -> ['tvö', 'tvær', 'tveir'] (do nothing)
 
-        # TODO: control for same length of all arrays
         result_arr = []
-        if len(verbalized_arr[0].split()) == 1:
+        sorted_arr = sorted(verbalized_arr, key=lambda x: len(x), reverse=True)
+        if len(sorted_arr[0].split()) == 1:
             return verbalized_arr
-        for elem in verbalized_arr[0].split():
+        # this might to be specialized: if we have multiple occurences of 'og', only keep the last:
+        # sjö hundruð og sjötíu og sjö - delete the first 'og'
+        sorted_arr = self.check_multiple_ands(sorted_arr)
+        for elem in sorted_arr[0].split():
             result_arr.append([elem])
 
-        for i in range(1, len(verbalized_arr)):
-            elem_arr = verbalized_arr[i].split()
+        for i in range(1, len(sorted_arr)):
+            elem_arr = sorted_arr[i].split()
             for j in range(len(elem_arr)):
-                #if result_arr[j][0] == elem_arr[j]:
                 if elem_arr[j] in result_arr[j]:
                     continue
                 else:
                     result_arr[j].append(elem_arr[j])
 
         return result_arr
+
+    def check_multiple_ands(self, arr):
+        #TODO: does not work - have to align arrays!
+        # see e.g. eitt þúsund og tvö hundruð vs. tólf hundruð
+        AND = 'og'
+        result_set = set()
+        smallest_dist_from_end = 10000 # arbitrarily high number larger than a possible sentence word count
+        found_AND = False
+        for verbalized in arr:
+            clean_arr = []
+            a = verbalized.split()
+            print(str(a))
+            indices = [i for i, x in enumerate(a) if x == AND]
+            if len(indices) > 1:
+                last_index = indices[-1]
+                if len(a) - last_index < smallest_dist_from_end:
+                    smallest_dist_from_end = len(a) - last_index
+
+            for ind in indices:
+                found_AND = True
+                if len(a) - ind > smallest_dist_from_end:
+                    a[ind] = ''
+
+            if found_AND and not AND in a:
+                # if there is a possibility for an 'and', this is correct and thus a version completely without 'and'
+                # should not be considered (like 'sjö hundruð sjötíu' instead of 'sjö hundruð og sjötíu'
+                continue
+
+            for elem in a:
+                if len(elem) > 0:
+                    clean_arr.append(elem)
+
+            result_set.add(' '.join(clean_arr))
+
+        return list(result_set)
 
     def insert_original_oov(self, text):
         text_arr = text.split()
@@ -129,7 +182,7 @@ class Verbalizer:
         return ' '.join(text_arr)
 
     def disambiguate(self, sent_arr):
-        # TODO: language model disambiguation
+
         word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(sent_arr)
         word_fst.draw('verb.dot')
         word_fst.set_output_symbols(self.word_symbols)
