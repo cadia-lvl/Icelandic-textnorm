@@ -6,10 +6,6 @@ units = Optimize[StringFile['ordinals_simple.txt', 'utf8', 'utf8']];
 teens = Optimize[StringFile['ordinals_teens_simple.tsv', 'utf8', 'utf8']];
 decades = Optimize[StringFile['ordinals_decades_lexicon.txt', 'utf8', 'utf8']];
 
-#lm_fst = LoadFst['input_fst.fst'];
-
-#units = ord_simple @ lm_fst;
-
 ordinals_20_99 = decades util.Delete["0".utf8] util.Delete[".".utf8] | (decades util.Insert[" og "] units);
 
 hundreds1 = num.cardinal_simple_all util.Insert[" hundraðasti".utf8];

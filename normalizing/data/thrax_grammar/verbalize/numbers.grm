@@ -17,13 +17,8 @@ teensplus = ten | teens;
 decades = StringFile['decades.tsv', 'utf8', 'utf8'];
 units_notNeutral = Optimize[StringFile['units_notNeutral.txt', 'utf8', 'utf8']];
 
-#two_lm = LoadFst['2_corpus.fst'];
-
-#export cardinal_simple_lm = (cardinal_simple @ two_lm);
-
-#export cardinal_simple_all = one_mask | cardinal_simple;
-
 export neutral_units = one_neutr | neutral_units2to9;
+export units = units_notNeutral | neutral_units;
 export cardinal_simple_all = cardinal_simple;
 
 cardinal_decades = (decades util.Delete["0".utf8]) |
@@ -42,7 +37,7 @@ cardinal_hundreds = Optimize[
   hundreds util.Delete["0".utf8] util.Delete["0".utf8] |
   (hundreds util.Delete["0".utf8] util.Insert[" og ".utf8] cardinal_simple_all) |
   (hundreds util.Insert[" og ".utf8] teens) |
-  (hundreds util.Insert[" "] cardinal_decades)]
+  (hundreds (insspace|insand) cardinal_decades)]
 ;
 #1900, 1905, 1914
 year_hundreds = Optimize[teens insspace ("".utf8 : "hundruð".utf8)
@@ -57,13 +52,30 @@ year_mill = Optimize[neutral_units2to9 util.Insert[" ".utf8] ("".utf8 : "þúsun
 ;
 
 year = Optimize[year_hundreds | year_mill];
-#cardinal = Optimize[ zero | cardinal_simple_lm | teens | cardinal_decades | cardinal_hundreds];
 
-cardinal = Optimize[ zero | cardinal_simple_all | teens | cardinal_decades | cardinal_hundreds | year];
+tail_1000_to_9999 = Optimize[
+  ("".utf8 : "þúsund".utf8)
+  (delzero delzero delzero |
+  (delzero delzero insand units) |
+  (delzero insand teensplus) |
+  (delzero (insspace | insand) numbers_20_to_99) |
+  ((insspace|insand) cardinal_hundreds))]
+;
 
-#cardinal = Optimize[ year];
+numbers_1000_to_9999 = Optimize[
+  ((neutral_units2to9 insspace <-10>) | (one_neutr insspace) | util.Delete["1".utf8])
+  tail_1000_to_9999]
+;
 
-#cardinal = Optimize[cardinal_simple_all];
+numbers_10000_to_99999 = Optimize[
+  (teensplus | numbers_20_to_99)
+  insspace
+  tail_1000_to_9999]
+;
+
+cardinal = Optimize[ zero | cardinal_simple_all | teens | cardinal_decades | cardinal_hundreds | year | numbers_1000_to_9999 | numbers_10000_to_99999];
+
+
 
 s = util.s;
 
