@@ -27,6 +27,7 @@ class Utterance(object):
         self.tokenized = []
         self.tokenized_string = ""
         self.classified = ""
+        self.reclassify = False
 
     def to_jsonpickle(self, filename):
         json_enc = jsonpickle.encode(self)

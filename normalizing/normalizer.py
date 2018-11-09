@@ -58,6 +58,12 @@ class Normalizer:
 
         return False
 
+    def retokenize(self, utt):
+        utt.tokenized = []
+        for tok in utt.ling_structure.tokens:
+            utt.tokenized.append(tok.name)
+
+        return ' '.join(utt.tokenized)
 
     def normalize_utterance(self, utt):
 
@@ -69,6 +75,15 @@ class Normalizer:
         parser.parse_tokens_from_fst(utt)
         #utt.to_jsonpickle(utt.original_sentence + '_utt.json')
         self.verbalizer.verbalize(utt)
+        if utt.reclassify:
+            utt.reclassify = False
+            utt.tokenized_string = self.retokenize(utt)
+            utt.ling_structure.tokens = []
+            classified_fst, stringified = self.classifier.classify(utt.tokenized_string)
+            utt.classified = stringified
+            parser = FSTParser(classified_fst, self.utf8_symbols)
+            parser.parse_tokens_from_fst(utt)
+            self.verbalizer.verbalize(utt)
 
         if self.normalization_failed(utt):
             print('Normalization failed for "' + utt.original_sentence + '"')
