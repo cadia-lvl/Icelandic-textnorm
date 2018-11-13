@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pynini as pn
-import pywrapfst as fst
-from classifier import Classifier
+"""
+Parses FST representations of classified and verbalized utterances
+
+
+"""
 from utterance_structure.utt_coll import Token, TokenType
 
 SPACE = 32
@@ -19,37 +21,40 @@ SUBSTRUCTURE = ['cardinal', 'ordinal']
 
 class FSTParser:
 
-    def __init__(self, classifier_fst, utf8_symbols):
-        self.fst = classifier_fst
-        self.state = self.fst.start()
-        self.last_state = self.fst.start()
+    def __init__(self, utf8_symbols):
+        self.fst = None
+        self.state = 0
+        self.last_state = 0
         self.inp_label = 0
         self.out_label = 0
         self.token_start = 0
         self.last_token_end = 0
-        self.num_states = classifier_fst.num_states()
+        self.num_states = 0
         self.utf8_symbols = utf8_symbols
 
         self.token_name = '' # does this belong here?
 
-    def parse_tokens_from_fst(self, utt):
+
+    def parse_tokens_from_fst(self, classified_fst, utt):
         """
-        if self.state < self.fst.start or self.state >= self.fst.num_states():
-            raise ValueError('Invalid state: {}'.format(self.state))
+        Parses tokens from the classified_fst, and updates the token information in the utterance - token types,
+        names, etc.
+
+        :param utt:
+        :return:
         """
+        self._init_fst(classified_fst)
+
         while self.state < self.fst.num_states() - 1:
             label = self.consume_label()
             if label != 'tokens':
-                #print('Error - label is ' + label + ' and not "tokens"')
-                #return False
+                #TODO: logging, error handling
                 print('not tokens!')
                 break
             self.next_state()
             token = Token()
             self.parse_message(token)
             self.update_utterance(utt, token, False)
-
-       # utt.print()
 
 
     def consume_label(self):
@@ -175,3 +180,9 @@ class FSTParser:
         if elem in SEPARATORS:
             return True
         return False
+
+    def _init_fst(self, inp_fst):
+        self.fst = inp_fst
+        self.state = self.fst.start()
+        self.last_state = self.fst.start()
+        self.num_states = self.fst.num_states()
