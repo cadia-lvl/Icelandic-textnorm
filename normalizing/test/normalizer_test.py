@@ -59,7 +59,14 @@ class TestNormalizer(unittest.TestCase):
 
     def get_cardinal_test_tuples(self):
         tuple_list = []
+        tuple_list.append(('04', 'núll fjórum'))#'núll fjórir')) - need to set nominative as default when no context
+        tuple_list.append(('5000 pund', 'fimm þúsund pund'))
+        tuple_list.append(('bjóða 1200 börnum', 'bjóða tólf hundruð börnum'))
+        tuple_list.append((('um 20000 stuðningsmenn', 'um tuttugu þúsund stuðningsmenn')))
         tuple_list.append(('að 54 börn', 'að fimmtíu og fjögur börn'))
+        tuple_list.append(('núna í 18777 silungum', 'núna í átján þúsund sjö hundruð sjötíu og sjö silungum'))
+        tuple_list.append(('núna í 18770 silungum', 'núna í átján þúsund sjö hundruð og sjötíu silungum'))
+        tuple_list.append(('18700 silungar', 'átján þúsund og sjö hundruð silungar'))
         tuple_list.append(('2 milljarða', 'tvo milljarða'))
         tuple_list.append(('fékk síðan 902 milljarða', 'fékk síðan níu hundruð og tvo milljarða'))
         #tuple_list.append(('spilaði samtals 199 leiki', 'spilaði samtals eitt hundrað níutíu og níu leiki'))
@@ -104,6 +111,9 @@ class TestNormalizer(unittest.TestCase):
 
         return tuple_list
 
+    def get_tel_test_tuples(self):
+        tuple_list = []
+        tuple_list.append('í síma 861 9401', 'í síma átta sex einn níu fjórir núll einn')
     def get_unk_test_tuples(self):
         tuple_list = []
         tuple_list.append(('að 54 aðildarsambönd', 'að fimmtíu og fjögur aðildarsambönd'))
