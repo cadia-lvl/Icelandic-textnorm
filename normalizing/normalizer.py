@@ -5,6 +5,7 @@
 Copyright: Reykjavik University
 Author: Anna Björk Nikulásdóttir
 License: Apache 2.0
+See also LICENSE.txt
 
 The LVL text normalizer 'Haukur' follows the idea of Google's Sparrowhawk/Kestrel for a two step text normalization:
 

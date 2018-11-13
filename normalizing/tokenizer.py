@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright: Reykjavik University
-Author: Anna Björk Nikulásdóttir
-License: Apache 2.0
-
 Contains tokenizer methods from the nltk.tokenize library.
 
 TODO: do we need adaption to Icelandic? Vilhjálmur's tokenizer?
