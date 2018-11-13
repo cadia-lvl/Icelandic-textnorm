@@ -120,8 +120,8 @@ class Normalizer:
 
         classified_fst, stringified = self.classifier.classify(utt.tokenized_string)
         utt.classified = stringified
-        parser = FSTParser(classified_fst, self.utf8_symbols)
-        parser.parse_tokens_from_fst(utt)
+        parser = FSTParser(self.utf8_symbols)
+        parser.parse_tokens_from_fst(classified_fst, utt)
         self.verbalizer.verbalize(utt)
 
 
