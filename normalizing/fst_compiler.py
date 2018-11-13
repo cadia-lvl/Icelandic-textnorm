@@ -14,12 +14,13 @@ import pywrapfst as fst
 
 class FST_Compiler:
 
+    ATTR_DIV = '|'  # Division character between the elements of a classified token
+    UNK = '<unk>'   # A placeholder for an unknown word
+
     def __init__(self, utf8_symbols, word_symbols):
         self.utf8_symbols = utf8_symbols
         self.word_symbols = word_symbols
         self.current_oov_queue = None
-        self.attr_div = '|'
-        self.unk = '<unk>'
 
 
     def fst_stringcompile(self, text):
@@ -31,7 +32,7 @@ class FST_Compiler:
         :return: an FST in Pynini format
         """
 
-        input_fst = self.get_basic_fst(text)
+        input_fst = self._get_basic_fst(text)
         # conversion to Pynini format necessary for the access of Pynini FST methods
         pynini_fst = pn.Fst.from_pywrapfst(input_fst)
 
@@ -48,11 +49,11 @@ class FST_Compiler:
         99:99 - 97:97 - 114:114 - 100:100 - 105:105 - 110:110 - 97:97 - 108:108 - 124:124 - 0:0 -
         105:105 - 110:110 - 116:116 - 101:101 - 103:103 - 101:101 - 114:114 - 58:58 - 0:0 - 53:53 - 0:0 - 124:124: 0:0
 
-        [c - a - r - d -i - n - a - l - | - ' ' - i - n - t - e - g - e - r - : - ' ' - 5 - ' ' - | - ' ']
+        [c - a - r - d - i - n - a - l - | - ' ' - i - n - t - e - g - e - r - : - ' ' - 5 - ' ' - | - ' ']
 
 
-        :param token:
-        :return:
+        :param token: a labeled token (semiotic class)
+        :return: an FST representation of the token classification
         """
 
         if not token.semiotic_class:
@@ -60,12 +61,12 @@ class FST_Compiler:
             print('Token ' + str(token) + ' does not have a semiotic class!')
             return
 
-        semiotic_class = token.semiotic_class.name + self.attr_div
-        label_fst = self.get_basic_fst(semiotic_class)
+        semiotic_class = token.semiotic_class.name + self.ATTR_DIV
+        label_fst = self._get_basic_fst(semiotic_class)
 
         for attr in token.semiotic_class.grammar_attributes():
-            attr_str = ' '.join(attr) + ' ' + self.attr_div + ' '
-            attr_fst = self.get_basic_fst(attr_str, unknown_to_zero=True)
+            attr_str = ' '.join(attr) + ' ' + self.ATTR_DIV + ' '
+            attr_fst = self._get_basic_fst(attr_str, unknown_to_zero=True)
             # only one attr for now, need to combine the attr fsts when there are more attributes, like in 'money'
 
         pn_label = pn.Fst.from_pywrapfst(label_fst)
@@ -76,7 +77,11 @@ class FST_Compiler:
         return pynini_fst
 
 
-    def get_basic_fst(self, text, unknown_to_zero=False):
+    #
+    # PRIVATE METHODS
+    #
+
+    def _get_basic_fst(self, text, unknown_to_zero=False):
         """
         Compiles a string into an OpenFST format FST, converting the characters of 'text' into their
         utf8 integer representation.
@@ -91,17 +96,10 @@ class FST_Compiler:
         compiler = fst.Compiler()
         state_counter = 0
         for c in text:
-            uni = self.utf8_symbols.find(c)
-            if uni == -1:
-                if unknown_to_zero:
-                    uni = 0
-                else:
-                    # do we need this? can we always insert zero for unknown?
-                    conv = '0x%04x' % ord(c)
-                    uni = self.utf8_symbols.find(conv)
+            int_val = self._get_int_value(c, unknown_to_zero)
             from_state = state_counter
             to_state = state_counter + 1
-            entry = "{} {} {} {}\n".format(from_state, to_state, uni, uni)
+            entry = "{} {} {} {}\n".format(from_state, to_state, int_val, int_val)
             compiler.write(entry)
             state_counter += 1
 
@@ -109,6 +107,7 @@ class FST_Compiler:
 
         input_fst = compiler.compile()
         return input_fst
+
 
     def get_basic_word_fst(self, text_arr):
         self.current_oov_queue = queue.Queue()
@@ -123,7 +122,7 @@ class FST_Compiler:
                 for w in arr:
                     uni = self.word_symbols.find(w)
                     if uni == -1:
-                        conv = self.unk
+                        conv = self.UNK
                         uni = self.word_symbols.find(conv)
                         self.current_oov_queue.put(w)
                     from_state = state_counter
@@ -146,7 +145,7 @@ class FST_Compiler:
                 for i, elem in enumerate(arr):
                     uni = self.word_symbols.find(elem)
                     if uni == -1:
-                        conv = '<unk>'
+                        conv = self.UNK
                         uni = self.word_symbols.find(conv)
                         self.current_oov_queue.put(elem)
                     entry = "{} {} {} {}\n".format(from_state, to_state, uni, uni)
@@ -319,3 +318,22 @@ class FST_Compiler:
         return False
 
 
+    def _get_int_value(self, character, unknown_to_zero):
+
+        int_val = self.utf8_symbols.find(character)
+
+        if int_val == -1:
+            # character is unknown, not found in utf8_symbols
+            if unknown_to_zero:
+                int_val = 0
+            elif ord(character) <= 32:
+                # For a space (' ') we extract the hex repr: 0x0020 with 2 trailing zeros.
+                # Captures non-printable chars as well, but we really don't handle them when verbalizing
+                # since we haven't 'met' them yet - fix that, if necessary
+                conv = '0x%04x' % ord(character)
+                int_val = self.utf8_symbols.find(conv)
+            else:
+                # TODO: logging, error handling, here? Propagate the -1 value?
+                print('No int value found for ' + character)
+
+        return int_val
