@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Copyright: Reykjavik University
+Author: Anna Björk Nikulásdóttir
+License: Apache 2.0
+
+Contains tokenizer methods from the nltk.tokenize library.
+
+TODO: do we need adaption to Icelandic? Vilhjálmur's tokenizer?
+If this class does not get extended in the course of the project, move these methods to a util module
+"""
 
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
@@ -23,7 +36,8 @@ def main():
                                    "byggja fallegt hús við Elliðavatn í Kópavogi varð að martröð við fall bankanna í "
                                    "október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í "
                                    "heimildarmyndinni Nýja Ísland sem sýnd var á Stöð 2 í vikunni.")
-    w_list = tok.tokenize_words(s_list[2])
+
+    w_list = tok.tokenize_words(s_list[1])
 
     print(' '.join(w_list))
 
