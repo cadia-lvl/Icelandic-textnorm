@@ -11,6 +11,7 @@ import semiotic_classes
 from fst_compiler import FST_Compiler
 from utt_coll import Token
 from utt_coll import TokenType
+from verbalized import Verbalized
 
 
 class Verbalizer:
@@ -27,19 +28,24 @@ class Verbalizer:
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.sil = 'sil'
         self.unk = '<unk>'
+        self.AND = 'og'
         self.oov_queue = None
 
     def extract_string(self, arr):
         res = []
         for a in arr:
             for elem in a:
+                #do we have a list of lists?
+                if len(elem[0]) > 1:
+                    return ''
                 res.append(elem)
 
         return ''.join(res)
 
     def verbalize(self, utt):
         tokens = utt.ling_structure.tokens
-        sentence_arr = []
+        #sentence_arr = []
+        verbalization = Verbalized()
         needs_disambiguation = False
         for tok in tokens:
             if tok.token_type == TokenType.SEMIOTIC_CLASS:
@@ -57,24 +63,20 @@ class Verbalizer:
             else:
                 words = [tok.word]
 
-            # make sure we flatten out possible nested lists
-            list_to_append = list(filter(lambda x: isinstance(x, list), words))
-            if list_to_append:
-                for elem in list_to_append:
-                    sentence_arr.append(elem)
-            else:
-                sentence_arr.append(words)
+            # make sure we flatten out possible nested lists or create more lists, if we have different length
+            # verbalization possibilities []
+            verbalization.extend_paths(words)
 
-        print(str(sentence_arr))
+        verbalization.print()
 
         if utt.reclassify:
             return
 
-        if needs_disambiguation:
-            verbalized = self.disambiguate(sentence_arr)
+        if needs_disambiguation or verbalization.max_depth > 1:
+            verbalized = self.disambiguate(verbalization)
 
         else:
-            verbalized_arr = [wrd for sublist in sentence_arr for wrd in sublist]
+            verbalized_arr = [wrd for sublist in verbalization.paths[0] for wrd in sublist]
             verbalized = ' '.join(verbalized_arr)
 
         utt.normalized_sentence = verbalized
@@ -86,9 +88,6 @@ class Verbalizer:
         if fst_size == 0:
             # no verbalization through thrax grammar
             print('no verbalization for ' + token.name)
-            # TODO: need to classify the utt again with separated tokens (0 4 instead of 04 for example)
-            # how to do that, without getting stuck in an endless loop - one more try is ok, but then we have
-            # to make sure we return a result. Think of this while refactoring
             token.verbalization_failed = True
             for c in token.name:
                 single_words_arr.append([c])
@@ -115,61 +114,83 @@ class Verbalizer:
         # ['níu hundruð og tvö', 'níu hundruð og tvær', 'níu hundruð og tveir'] ->
         # [['níu'], ['hundruð'], ['og'], ['tvö', 'tvær', 'tveir']] (split into single words)
         # ['tvö', 'tvær', 'tveir'] -> ['tvö', 'tvær', 'tveir'] (do nothing)
+        # can be much more complicated:
+        # ['tólf hundruð', 'þúsund tvö hundruð', 'þúsund tvær hundruð' 'eitt þúsund og tveir hundruð' ...]
+        # -> different number of words, different words
+
+        verbalized_arr = self.delete_superfluous_and(verbalized_arr)
+        needs_splitting = False
+        for elem in verbalized_arr:
+            if len(elem.split()) > 1:
+                needs_splitting = True
+                break
+
+        if not needs_splitting:
+            return verbalized_arr
+
+        # create a dict of verbalizations, with the length of the verbalizations in words as key
 
         result_arr = []
-        sorted_arr = sorted(verbalized_arr, key=lambda x: len(x), reverse=True)
-        if len(sorted_arr[0].split()) == 1:
-            return verbalized_arr
-        # this might to be specialized: if we have multiple occurences of 'og', only keep the last:
-        # sjö hundruð og sjötíu og sjö - delete the first 'og'
-        sorted_arr = self.check_multiple_ands(sorted_arr)
-        for elem in sorted_arr[0].split():
-            result_arr.append([elem])
+        verbalization_dict = {}
+        for verbalization in verbalized_arr:
+            arr = verbalization.split()
+            if len(arr) in verbalization_dict:
+                verbalization_dict[len(arr)].append(arr)
+            else:
+                verbalization_dict[len(arr)] = [arr]
 
-        for i in range(1, len(sorted_arr)):
-            elem_arr = sorted_arr[i].split()
-            for j in range(len(elem_arr)):
-                if elem_arr[j] in result_arr[j]:
-                    continue
-                else:
-                    result_arr[j].append(elem_arr[j])
+        for k in verbalization_dict.keys():
+            if k == 1:
+                return verbalization_dict[k]
+            inner_result_arr = []
+            print(str(verbalization_dict[k]))
+            verb_arr = verbalization_dict[k]
+            for elem in verb_arr[0]:
+                inner_result_arr.append([elem])
+            for i in range(1, len(verb_arr)):
+                elem_arr = verb_arr[i]
+                for j in range(len(elem_arr)):
+                    if elem_arr[j] in inner_result_arr[j]:
+                        continue
+                    else:
+                        inner_result_arr[j].append(elem_arr[j])
 
+            result_arr.append(inner_result_arr)
         return result_arr
 
-    def check_multiple_ands(self, arr):
-        #TODO: does not work - have to align arrays!
-        # see e.g. eitt þúsund og tvö hundruð vs. tólf hundruð
-        AND = 'og'
-        result_set = set()
-        smallest_dist_from_end = 10000 # arbitrarily high number larger than a possible sentence word count
-        found_AND = False
-        for verbalized in arr:
-            clean_arr = []
-            a = verbalized.split()
-            print(str(a))
-            indices = [i for i, x in enumerate(a) if x == AND]
-            if len(indices) > 1:
-                last_index = indices[-1]
-                if len(a) - last_index < smallest_dist_from_end:
-                    smallest_dist_from_end = len(a) - last_index
+    def delete_superfluous_and(self, verbalization_arr):
+        DELETE = 'delete_me'
+        result = []
+        for elem in verbalization_arr:
+            arr = elem.split()
+            if self.AND in arr and len(arr) > 3:
+                last_and_index = len(arr)-arr[::-1].index(self.AND)-1
+                while arr.index(self.AND) != last_and_index:
+                    arr[arr.index(self.AND)] = DELETE
+                    if not self.AND in arr:
+                        break
 
-            for ind in indices:
-                found_AND = True
-                if len(a) - ind > smallest_dist_from_end:
-                    a[ind] = ''
+            while DELETE in arr:
+                arr.remove(DELETE)
 
-            if found_AND and not AND in a:
-                # if there is a possibility for an 'and', this is correct and thus a version completely without 'and'
-                # should not be considered (like 'sjö hundruð sjötíu' instead of 'sjö hundruð og sjötíu'
-                continue
+            result.append(' '.join(arr))
 
-            for elem in a:
-                if len(elem) > 0:
-                    clean_arr.append(elem)
+        for res in result:
+            # now every string should have max one 'og' - choose the one with the 'og' in last position,
+            # given that all other elements are equal
+            for r in result:
+                diff = [i for i in res.split() if i not in r.split()]
+                if diff == [self.AND]:
+                    result[result.index(r)] = ''
+                elif not diff:
+                    if self.AND in r and self.AND in res:
+                        if res.index(self.AND) > r.index(self.AND):
+                            result[result.index(r)] = ''
 
-            result_set.add(' '.join(clean_arr))
+        while '' in result:
+            result.remove('')
 
-        return list(result_set)
+        return result
 
     def insert_original_oov(self, text):
         text_arr = text.split()
@@ -181,26 +202,49 @@ class Verbalizer:
                     text_arr[ind] = self.oov_queue.get(False)
         return ' '.join(text_arr)
 
-    def disambiguate(self, sent_arr):
+    def disambiguate(self, verbalization):
+        normalized = {}
+        for verbal_arr in verbalization.paths:
 
-        word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(sent_arr)
-        word_fst.draw('verb.dot')
-        word_fst.set_output_symbols(self.word_symbols)
-        word_fst.optimize()
-        word_fst.project(True)
-        word_fst.arcsort()
-        word_fst.draw('verb_final.dot')  # tveir:tveir
-        best_exp = pn.intersect(word_fst, self.lm)
-        best_exp.optimize()
-        best_exp.draw('best.dot')
-        shortest_path = pn.shortestpath(best_exp).optimize()
-        normalized_text = shortest_path.stringify(token_type=self.word_symbols)
+            word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(verbal_arr)
+            word_fst.draw('verb.dot')
+            word_fst.set_output_symbols(self.word_symbols)
+            word_fst.optimize()
+            word_fst.project(True)
+            word_fst.arcsort()
+            word_fst.draw('verb_final.dot')  # tveir:tveir
+            best_exp = pn.intersect(word_fst, self.lm)
+            best_exp.optimize()
+            best_exp.draw('best.dot')
+            shortest_path = pn.shortestpath(best_exp).optimize()
+            normalized_text = shortest_path.stringify(token_type=self.word_symbols)
+            normalized[normalized_text] = pn.shortestdistance(shortest_path)
+            #normalized[normalized_text] = shortest_path.final(shortest_path.num_states()-1)
+
+        min_dist = 100000
+        min_key = ''
+        for k in normalized:
+            sum = 0.0
+            for i in range(len(normalized[k])):
+                weight_as_bstring = normalized[k][i].to_string()
+                s = weight_as_bstring.decode()
+                weight_as_float = float(s)
+                sum += weight_as_float
+            avg_weight = sum/len(normalized[k])
+
+            if avg_weight < min_dist:
+                min_dist = avg_weight
+                min_key = k
+
+            print(k + ': ' + str(avg_weight))
+
+
         if self.oov_queue:
-            normalized_text = self.insert_original_oov(normalized_text)
+            min_key = self.insert_original_oov(min_key)
             self.oov_queue = None
-        print(normalized_text)
+        print(min_key)
 
-        return normalized_text
+        return min_key
 
 def main():
 
