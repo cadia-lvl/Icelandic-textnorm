@@ -153,7 +153,8 @@ class Verbalizer:
             for c in token.name:
                 splitted_arr.append([c])
         else:
-            verbalized_arr = graphs.extract_verbalization(verbalized_fst, self.utf8_symbols)
+            trans_graph = graphs.TransitionGraph(self.utf8_symbols)
+            verbalized_arr = trans_graph.extract_verbalization(verbalized_fst)
             splitted_arr = self._split_verbalized_arr(verbalized_arr)
 
         return splitted_arr
