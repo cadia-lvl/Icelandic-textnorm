@@ -6,6 +6,7 @@ Verbalize semiotic class tokens for an utterance.
 
 """
 import pynini as pn
+import graphs
 from fst_compiler import FST_Compiler
 from utt_coll import TokenType
 from verbalized import Verbalized
@@ -26,7 +27,7 @@ class Verbalizer:
         self.lm.set_input_symbols(self.word_symbols)
         self.lm.set_output_symbols(self.word_symbols)
         self.lm.arcsort()
-
+        self.utf8_symbols = utf8_symbols
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.oov_queue = None
 
@@ -152,7 +153,7 @@ class Verbalizer:
             for c in token.name:
                 splitted_arr.append([c])
         else:
-            verbalized_arr = self.compiler.extract_verbalization(verbalized_fst)
+            verbalized_arr = graphs.extract_verbalization(verbalized_fst, self.utf8_symbols)
             splitted_arr = self._split_verbalized_arr(verbalized_arr)
 
         return splitted_arr
