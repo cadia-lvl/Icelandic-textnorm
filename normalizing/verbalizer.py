@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Verbalize a semiotic class tokens for an utterance.
+Verbalize semiotic class tokens for an utterance.
 
 """
 import pynini as pn

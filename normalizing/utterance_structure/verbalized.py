@@ -12,15 +12,16 @@ class Verbalized:
         self.paths = []
         self.max_depth = 0
 
-    def add_path(self, path):
-        self.paths.append(path)
+    def __str__(self):
+        return str(self.paths)
+
 
     def extend_paths(self, token_verbalizations):
         """
         Extends paths with the token verbalizations that can be:
-        a) an array of len 1, with only one word in the containing array (non-ambiguous verbalization/token type WORD)
-        b) an array of len >= 1, where at least one of the arrays has more than one entries
-        c) an array containing a list of arrays, for non-compatible verbalization paths
+        a) an array of depth 1, with only one word in the containing array (non-ambiguous verbalization/token type WORD)
+        b) an array of depth 3 >= 1, where at least one of the arrays has more than one entries
+        c) an array of depth 3 containing a list of arrays, for non-compatible verbalization paths
 
         a) ['fimm'] (5)
         b) [['tuttugu'],['og'],['tvo', 'tvær', 'tveir', 'tveimur', 'tveggja']] (22)
@@ -32,52 +33,53 @@ class Verbalized:
         :return:
         """
 
+        list_depth = self._depth(token_verbalizations)
+        if self.max_depth < list_depth:
+            self.max_depth = list_depth
 
-
-        d = self.depth(token_verbalizations)
-        if self.max_depth < d:
-            self.max_depth = d
-
-        #if len(token_verbalizations) == 1:
-        if d == 1:
+        if list_depth == 1:
             if self.paths:
                 for p in self.paths:
                     p.append(token_verbalizations)
             else:
                 self.paths.append([token_verbalizations])
 
-        elif self.depth(token_verbalizations) == 3:
-            self.create_new_paths(len(token_verbalizations))
-            for i, elem in enumerate(token_verbalizations):
-                for e in elem:
-                    if self.paths:
-                        self.paths[i].append(e)
-                    else:
-                        self.paths.append([e])
+        elif list_depth == 3:
+            # need to copy existing paths, once for each 2nd level list in token_verbalization
+            self._create_new_paths(len(token_verbalizations))
+            self._update_deep_paths(token_verbalizations)
         else:
-            for elem in token_verbalizations:
-                if self.paths:
-                    for p in self.paths:
-                        if isinstance(elem, list):
-                            p.append(elem)
-                        else:
-                            p.append(token_verbalizations)
-                else:
+            self._update_paths(token_verbalizations)
+
+    #
+    #  PRIVATE METHODS
+    #
+
+    def _update_paths(self, token_verbalizations):
+
+        for elem in token_verbalizations:
+            if self.paths:
+                for p in self.paths:
                     if isinstance(elem, list):
-                        self.paths.append([elem])
+                        p.append(elem)
                     else:
-                        self.paths.append(token_verbalizations)
+                        p.append(token_verbalizations)
+            else:
+                if isinstance(elem, list):
+                    self.paths.append([elem])
+                else:
+                    self.paths.append(token_verbalizations)
 
+    def _update_deep_paths(self, token_verbalizations):
 
-    def depth(self, verbal_arr):
-        if not verbal_arr:
-            return 0
-        if isinstance(verbal_arr, list):
-            return 1 + max(self.depth(item) for item in verbal_arr)
-        else:
-            return 0
+        for i, elem in enumerate(token_verbalizations):
+            for e in elem:
+                if self.paths:
+                    self.paths[i].append(e)
+                else:
+                    self.paths.append([e])
 
-    def create_new_paths(self, new_paths_count):
+    def _create_new_paths(self, new_paths_count):
         """
         Copy paths in self.paths new_paths_count times
         :param new_paths_count:
@@ -89,8 +91,13 @@ class Verbalized:
                 new_path = p.copy()
                 self.paths.append(new_path.copy())
 
+    def _depth(self, verbal_arr):
+        # TODO: util?
+        if not verbal_arr:
+            return 0
+        if isinstance(verbal_arr, list):
+            return 1 + max(self._depth(item) for item in verbal_arr)
+        else:
+            return 0
 
 
-    def print(self):
-        for p in self.paths:
-            print(str(p))
