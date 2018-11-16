@@ -9,17 +9,40 @@ If this class does not get extended in the course of the project, move these met
 """
 
 from nltk.tokenize import sent_tokenize
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import TreebankWordTokenizer
 
-
+import re
 class Tokenizer:
+
+    def __init__(self):
+        self.tokenizer = TreebankWordTokenizer()
+        # remove % and @ from the4th list as compared to original PUNCTUATION:
+        self.tokenizer.PUNCTUATION = [
+            (re.compile(r'([:,])([^\d])'), r' \1 \2'),
+            (re.compile(r'([:,])$'), r' \1 '),
+            (re.compile(r'\.\.\.'), r' ... '),
+            (re.compile(r'[;#$&]'), r' \g<0> '),
+            (re.compile(r'([^\.])(\.)([\]\)}>"\']*)\s*$'), r'\1 \2\3 '),  # Handles the final period. #ABN: change this to deal with ordinals at the end of sentence
+            (re.compile(r'[?!]'), r' \g<0> '),
+
+            (re.compile(r"([^'])' "), r"\1 ' "),
+        ]
 
     def tokenize_sentence(self, text):
         sentence_list = sent_tokenize(text)
         return sentence_list
 
     def tokenize_words(self, sentence):
-        word_list = word_tokenize(sentence)
+        # drullumix - need to fix this within the tokenizer
+        # the tokenizer always cuts the last dot of the sentence, even if it is a date like '14.10.'
+        # don't want that.
+        remove_last = False
+        if re.match('.*\d{1,2}\.\d{1,2}\.$', sentence):
+            sentence = sentence + ' auka'
+            remove_last = True
+        word_list = self.tokenizer.tokenize(sentence)
+        if remove_last:
+            word_list = word_list[:-1]
         return word_list
 
 
