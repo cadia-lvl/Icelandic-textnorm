@@ -34,7 +34,7 @@ class Classifier:
         """
 
         classified_fst = self._create_classified_fst(text)
-        classified_string = self._create_classified_string(classified_fst)
+        classified_string = self._create_classified_string(classified_fst).replace('<epsilon>', '')
 
         return classified_fst, classified_string
 
@@ -44,7 +44,10 @@ class Classifier:
         compiler = FST_Compiler(self.utf8_symbols, None)
         inp_fst = compiler.fst_stringcompile(text)
         all_fst = pn.compose(inp_fst, self.thrax_grammar)
+        all_fst.draw('all_class.dot')
         shortest_path = pn.shortestpath(all_fst).optimize()
+        shortest_path.draw('shortes_class.dot')
+        shortest_path.rmepsilon()
 
         return shortest_path
 
