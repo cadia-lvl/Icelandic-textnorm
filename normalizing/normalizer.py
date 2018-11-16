@@ -37,7 +37,7 @@ from utterance_structure.utt_coll import Utterance
 
 class Normalizer:
 
-    def __init__(self, configfile='normalizer.conf', working_dir=None):
+    def __init__(self, configfile='normalizer.conf', working_dir=None, verbalize=True):
 
         if working_dir:
             current_dir = working_dir
@@ -45,7 +45,7 @@ class Normalizer:
             current_dir = os.getcwd() + '/'
 
         config = configparser.ConfigParser()
-        config.read(working_dir + configfile)
+        config.read(current_dir + configfile)
 
         data_dir = current_dir + config['DATA_DIR']['data']
         utf8_symfile = data_dir + config['symbol tables']['utf8']
@@ -60,7 +60,9 @@ class Normalizer:
 
         self.tok = Tokenizer()
         self.classifier = Classifier(path_to_classifier, self.utf8_symbols)
-        self.verbalizer = Verbalizer(verbalizer_grammar_file, lm_file, self.utf8_symbols, word_symbols)
+        self.verbalize = verbalize
+        if verbalize:
+            self.verbalizer = Verbalizer(verbalizer_grammar_file, lm_file, self.utf8_symbols, word_symbols)
         self.utterance_collection = None
 
 
@@ -78,9 +80,12 @@ class Normalizer:
             self.utterance_collection.add_utterance(Utterance(sent))
         for utt in self.utterance_collection.collection:
             self._normalize_utterance(utt)
-            normalized_text.append(utt.normalized_sentence)
+            if self.verbalize:
+                normalized_text.append(utt.normalized_sentence)
+            else:
+                normalized_text.append(utt.classified)
 
-        return ' '.join(normalized_text)
+        return '\n'.join(normalized_text)
 
 
     def print_normalized_text(self):
@@ -101,7 +106,9 @@ class Normalizer:
 
         utt.tokenized = self.tok.tokenize_words(utt.original_sentence)
         utt.tokenized_string = ' '.join(utt.tokenized)
-        self._classify_and_verbalize(utt)
+        classified_fst = self._classify(utt)
+        if self.verbalize:
+            self._verbalize(classified_fst, utt)
 
         if utt.reclassify:
             # Some token(s) could not be normalized and where split up into single character tokens
@@ -109,20 +116,26 @@ class Normalizer:
             utt.reclassify = False
             utt.tokenized_string = self._retokenize(utt)
             utt.ling_structure.tokens = []
-            self._classify_and_verbalize(utt)
+            classified_fst = self._classify(utt)
+            if self.verbalize:
+                self._verbalize(classified_fst, utt)
 
         if self._normalization_failed(utt):
             # TODO: logging
             print('Normalization failed for "' + utt.original_sentence + '"')
 
 
-    def _classify_and_verbalize(self, utt):
+    def _classify(self, utt):
 
         classified_fst, stringified = self.classifier.classify(utt.tokenized_string)
         utt.classified = stringified
+        return classified_fst
+
+    def _verbalize(self, classified_fst, utt):
         parser = FSTParser(self.utf8_symbols)
         parser.parse_tokens_from_fst(classified_fst, utt)
         self.verbalizer.verbalize(utt)
+
 
 
     def _normalization_failed(self, utt):
@@ -145,12 +158,14 @@ class Normalizer:
 
 def main():
 
-    input_text = "þessi 3 börn"
+    input_text = "Afkoma ársins 2017 var góð. Hagnaður fyrir óinnleysta fjármagnsliði hefur aldrei verið meiri. " \
+                 "Tekjur voru meiri en nokkru sinni fyrr og sett voru met í orkuvinnslu og -sölu á árinu. " \
+                 "Selt magn var 14,3 teravattstundir og jókst um 5,1% milli ára. "
 
-    norm = Normalizer()
-    norm.normalize(input_text)
-
-    norm.print_normalized_text()
+    norm = Normalizer(verbalize=False)
+    normalized = norm.normalize(input_text)
+    print(normalized)
+    #norm.print_normalized_text()
 
     #with open("utterance.json") as read_file:
     #    utt_in = read_file.read()
