@@ -1,0 +1,49 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'cardinal.grm' as card;
+import 'ordinal.grm' as ord;
+import 'decimal.grm' as dec;
+
+#
+# Classifys tokens containing pronuncable symbols
+#
+#
+
+q = util.quote;
+
+neg = "-".utf8;
+degree = "°".utf8;
+perc_symbol = "%".utf8;
+cards = card.CARDINAL;
+ords = ord.ORDINAL;
+decs = dec.DECIMAL;
+
+negative = 
+  util.Insert["negative { "]
+  util.Insert["symbol: " q]
+  neg
+  util.Insert[q " "]
+  (cards|ords|decs)
+  util.Insert[" }"]
+;
+
+degrees = 
+  util.Insert["degrees { "]
+  (cards|ords|decs)
+  util.Insert[" symbol: " q]
+  degree
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+percent =
+    util.Insert["percent { "]
+    (cards|decs)
+    util.Insert[" symbol: " q]
+    perc_symbol
+    util.Insert[q]
+    util.Insert[" }"]
+;
+
+export SYMBOL = Optimize[negative|degrees|percent];
+

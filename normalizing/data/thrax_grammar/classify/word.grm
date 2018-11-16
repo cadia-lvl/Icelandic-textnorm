@@ -1,0 +1,16 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+q = util.quote;
+
+# Markup for ordinary tokens that don't match anything else.
+# output is a "name:" token. Cost is to make this analysis more expensive.
+
+
+word =
+  util.Insert["name: " q]
+  (utf.notSpace <10>)+
+  util.Insert[q]
+;
+
+export WORD = Optimize[word];

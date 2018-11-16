@@ -1,0 +1,71 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'cardinal.grm' as card;
+import 'ordinal.grm' as ord;
+import 'decimal.grm' as dec;
+import 'date.grm' as date;
+
+q = util.quote;
+
+#
+# Maps input of the form
+#
+# 2018-2022
+#
+# into
+#
+# connector { from: "2018" connector: "-" to: "2022" }
+#
+# the 'from' and the 'to' elements have to be of the same class
+#
+
+conn = "-".utf8;
+cards = card.CARDINAL;
+ords = ord.ORDINAL;
+decs = dec.DECIMAL;
+dates = date.DATE;
+
+
+cardinal_conn =
+	  util.Insert["connector { "]
+	  cards
+	  util.Insert[" connector: " q]
+	  conn
+	  util.Insert[q " "]
+	  cards
+	  util.Insert[" }"]
+	;
+
+ordinal_conn =
+	  util.Insert["connector { "]
+	  ords
+	  util.Insert[" connector: " q]
+	  conn
+	  util.Insert[q " "]
+	  ords
+	  util.Insert[" }"]
+	;
+
+decimal_conn =
+	  util.Insert["connector { "]
+	  decs
+	  util.Insert[q]
+	  util.Insert[" connector: " q]
+	  conn
+	  util.Insert[q " "]
+	  decs
+	  util.Insert[" }"]
+	;
+
+date_conn =
+	  util.Insert["connector { "]
+	  dates
+	  util.Insert[q]
+	  util.Insert[" connector: " q]
+	  conn
+	  util.Insert[q " "]
+	  dates
+	  util.Insert[" }"]
+	;
+
+export CONNECTOR = Optimize[cardinal_conn | ordinal_conn | decimal_conn | date_conn];

@@ -1,0 +1,31 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+d = utf.digits;
+q = util.quote;
+
+
+# Maps input of the form
+#
+# 10.25
+#
+# into 
+#
+# decimal { integer_part: "10" fractional_part: "25" }
+#
+# The fractional part is optional. Can we use this instead of numbers.grm?
+
+
+decimal =
+  util.Insert["decimal { "]
+  util.Insert["integer_part: " q]
+  d+
+  util.Insert[q]
+  util.Delete[",".utf8]
+  util.Insert[" fractional_part: " q]
+  d+
+  util.Insert[q]
+  util.Insert[" }"];
+  
+export DECIMAL = Optimize[decimal];
+  

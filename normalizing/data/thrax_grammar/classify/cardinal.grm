@@ -1,0 +1,15 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+d = utf.digits;
+q = util.quote;
+
+cardinal =
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  (d+ | d{1,3} (".".utf8 d{3})+)
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+export CARDINAL = Optimize[cardinal];

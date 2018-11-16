@@ -1,0 +1,115 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'cardinal.grm' as card;
+import 'ordinal.grm' as ord;
+import 'decimal.grm' as dec;
+
+#
+# Maps numbers including symbols, that should not be pronunced, but that "dictate"
+# how the numbers are spoken.
+# Telephone numbers, bank accounts, lottery numbers, etc.
+# 
+#
+
+d = utf.digits;
+q = util.quote;
+
+non_speak = "-".utf8;
+cards = card.CARDINAL;
+ords = ord.ORDINAL;
+decs = dec.DECIMAL;
+
+card_1_digit =
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+card_2_digit =
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d{2}
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+card_3_digit =
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d{3}
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+card_4_digit =   
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d{4}
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+card_4_digit_kennitala =   
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d{3}"9|0"
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+card_6_digit_kennitala =   
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  d{6}
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+tel =
+  util.Insert["telephone { "]
+  card_3_digit
+  util.Delete[non_speak]
+  util.Insert[" "]
+  card_4_digit
+  util.Insert[" }"]
+  ;
+
+bank =
+  util.Insert["bank_account { "]
+  (card_3_digit|card_4_digit)
+  util.Delete[non_speak]
+  util.Insert[" "]
+  card_2_digit
+  util.Delete[non_speak]
+  util.Insert[" "]
+  cards
+  util.Insert[" }"]
+  ;
+
+person_id =
+  util.Insert["personal_id: { "]
+  card_6_digit_kennitala
+  util.Delete[non_speak]
+  util.Insert[" "]
+  card_4_digit_kennitala
+  util.Insert[" }"]
+  ;
+
+number_rows =
+  util.Insert["number_row { "]
+  (card_1_digit|card_2_digit)
+  util.Delete[non_speak]
+  util.Insert[" "]
+  (card_1_digit|card_2_digit)
+  util.Delete[non_speak]
+  util.Insert[" "]
+  (card_1_digit|card_2_digit)
+  (util.Delete[non_speak]
+  util.Insert[" "]
+  (card_1_digit|card_2_digit))*
+   util.Insert[" }"]
+   ;
+  
+export NON_PRON_SYMS = Optimize[tel|bank|person_id|number_rows];

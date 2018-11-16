@@ -1,0 +1,45 @@
+import '../util.grm' as util;
+import 'cardinal.grm' as c;
+import 'ordinal.grm' as o;
+import 'decimal.grm' as dec;
+import 'time.grm' as t;
+import 'date.grm' as dt;
+import 'time_sports.grm' as ts;
+import 'sports_results.grm' as sr;
+import 'connector.grm' as co;
+import 'pron_symbols.grm' as sy;
+import 'non_pron_symbols.grm' as ns;
+import 'word.grm' as w;
+import 'punctuation.grm' as p;
+
+#types = o.ORDINAL | (c.CARDINAL <2>) |w.WORD;
+numbers = o.ORDINAL | c.CARDINAL | dec.DECIMAL | t.TIME | dt.DATE | ts.TIME_SPORTS | sr.SPORTS_RESULTS | co.CONNECTOR | sy.SYMBOL | ns.NON_PRON_SYMS;
+words = w.WORD;
+
+word_token = 
+  util.Insert["tokens { "]
+  words
+  util.Insert[" }"]
+;
+
+number_token = 
+  util.Insert["tokens { "]
+  numbers
+  util.Insert[" }"]
+;
+
+
+token_plus_punct = 
+  ((p.PUNCT util.Insert[" "])*
+  word_token
+  (util.Insert[" "] p.PUNCT)*) |
+  number_token
+;
+
+#token_plus_punct = 
+#  (p.PUNCT util.Insert[" "])*
+#  types
+#  (util.Insert[" "] p.PUNCT)*
+#;
+
+export TOKENIZE_AND_CLASSIFY = Optimize[token_plus_punct (" " token_plus_punct)*];

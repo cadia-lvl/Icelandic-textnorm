@@ -1,0 +1,44 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+d = utf.digits;
+q = util.quote;
+
+# Maps input of the form
+#
+# 3:27:40
+#
+# into
+#
+# time { hours: "3" minutes: "27" seconds: "40" }
+#
+# hours are optional. Can we do better here? Theoretically both hours and seconds can be
+# optional (and minutes when talking sprints results, adding milliseconds ...)
+#
+# Sparrowhawk: Hours and minutes fields are defined as ints, so here we don't use quotes.
+# But how are these different from cardinals, which are quoted? Keep the quotes for now
+
+
+hour = d{1,3};
+
+minute = ("0" | "1" | "2" | "3" | "4" | "5")  d;
+
+second = ("0" | "1" | "2" | "3" | "4" | "5")  d;
+
+time_sports =
+  util.Insert["time_sports {"]
+  (util.Insert[" hours: " q]
+  hour
+  util.Insert[q]
+  util.Delete[":".utf8])?
+  util.Insert[" minutes: " q]
+  minute
+  util.Insert[q]
+  util.Delete[":".utf8]
+  util.Insert[" seconds: " q]
+  second
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+export TIME_SPORTS = Optimize[time_sports];
