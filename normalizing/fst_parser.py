@@ -9,6 +9,7 @@ utterance
 """
 from utterance_structure.utt_coll import Token, TokenType
 
+EPSILON = 0
 SPACE = 32
 QUOTES = 34
 COLON = 58
@@ -126,6 +127,8 @@ class FSTParser:
     def _parse_quoted_field_value(self, arr):
 
         while self._next_state():
+            if self.out_label == EPSILON:
+                continue
             if self.out_label != QUOTES:
                 arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
             else:
@@ -135,7 +138,7 @@ class FSTParser:
 
         label_arr = []
         while self._next_state():
-            if (self.out_label == SPACE and not label_arr) or self.out_label == 0:
+            if (self.out_label == SPACE and not label_arr) or self.out_label == EPSILON:
                 continue
             elif not self._is_separator(self.out_label):
                 label_arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
@@ -155,7 +158,7 @@ class FSTParser:
     def _consume_whitespace(self):
 
         while self._next_state():
-            if self.out_label != SPACE and self.out_label != 0:
+            if self.out_label != SPACE and self.out_label != EPSILON:
                 self._prev_state()
                 break
 
@@ -170,7 +173,7 @@ class FSTParser:
         self.inp_label = arc_it.value().ilabel
         self.out_label = arc_it.value().olabel
 
-        if self.inp_label != 0:
+        if self.inp_label != EPSILON:
             # Don't aggregate leading whitespace against a token
             if self.inp_label == SPACE and not self.token_name:
                 self.token_start += 1
