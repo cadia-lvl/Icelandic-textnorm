@@ -141,7 +141,17 @@ class Token(object):
             if tuple['type:'] == 'PUNCT':
                 self.token_type = TokenType.PUNCT
 
-        if sem_class_label:
+        if self.semiotic_class and sem_class_label:
+            # add to existing object
+            if isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Decimal):
+                if 'fractional_part:' in tuple:
+                    self.semiotic_class.set_fractional_part(tuple['fractional_part:'])
+
+            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Time):
+                if 'minutes:' in tuple:
+                    self.semiotic_class.set_minutes(tuple['minutes:'])
+
+        elif sem_class_label:
             self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
             self.token_type = TokenType.SEMIOTIC_CLASS
 
@@ -153,6 +163,24 @@ class Token(object):
             return utterance_structure.semiotic_classes.Cardinal(content['integer:'])
         if label == 'ordinal':
             return utterance_structure.semiotic_classes.Ordinal(content['integer:'])
+        if label == 'decimal':
+            decim = utterance_structure.semiotic_classes.Decimal()
+            if 'integer_part:' in content:
+                decim.set_integer_part(content['integer_part:'])
+                return decim
+            else:
+                # Error
+                print('We should have integer_part as initial field in a decimal!')
+
+        if label == 'time':
+            decim = utterance_structure.semiotic_classes.Time()
+            if 'hours:' in content:
+                decim.set_hours(content['hours:'])
+                return decim
+            else:
+                # Error
+                print('We should have hours as initial field in time!')
+
 
     def print(self):
         print('TokenType: ' + str(self.token_type))

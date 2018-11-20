@@ -18,7 +18,7 @@ CURLY_CLOSE = 125
 
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
 
-SUBSTRUCTURE = ['cardinal', 'ordinal']
+SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time']
 
 CLOSING_FIELD = '}'
 TOKEN_LABEL = 'tokens'
