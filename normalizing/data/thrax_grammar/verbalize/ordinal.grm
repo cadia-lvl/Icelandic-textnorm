@@ -6,7 +6,9 @@ units = Optimize[StringFile['ordinals_simple.txt', 'utf8', 'utf8']];
 teens = Optimize[StringFile['ordinals_teens_simple.tsv', 'utf8', 'utf8']];
 decades = Optimize[StringFile['ordinals_decades_lexicon.txt', 'utf8', 'utf8']];
 
-ordinals_20_99 = decades util.Delete["0".utf8] util.Delete[".".utf8] | (decades util.Insert[" og "] units);
+#ordinals_20_99 = decades util.Delete["0".utf8] util.Delete[".".utf8] | (decades #util.Insert[" og "] units);
+
+ordinals_20_99 = decades util.Delete["0".utf8] | (decades util.Insert[" og "] units);
 
 hundreds1 = num.cardinal_simple_all util.Insert[" hundraðasti".utf8];
 
@@ -21,12 +23,12 @@ ordinals_100_999 = Optimize[hundreds1 util.Delete["00."] |
 #Later: check weights in Ingas grammar
 ordinals = Optimize[units | teens | ordinals_20_99 | ordinals_100_999];
 
-s = util.s;
+s = utf.space;
 
 ordinal_markup =
   util.Delete["ordinal|integer:"]
   ordinals
-  util.Delete[s "|"]
+  util.Delete[s* "|"]
 ;
 
 export ORDINAL_MARKUP = Optimize[ordinal_markup];

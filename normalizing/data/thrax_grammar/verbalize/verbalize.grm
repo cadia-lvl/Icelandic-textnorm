@@ -1,5 +1,8 @@
 import 'numbers.grm' as n;
 import 'ordinal.grm' as o;
+import 'decimal.grm' as d;
+import 'time.grm' as t;
 import 'verbatim.grm' as v;
 
-export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | v.VERBATIM];
+
+export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | d.DECIMAL_MARKUP | t.TIME | v.VERBATIM];

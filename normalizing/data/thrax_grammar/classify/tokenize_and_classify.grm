@@ -13,7 +13,10 @@ import 'word.grm' as w;
 import 'punctuation.grm' as p;
 
 #types = o.ORDINAL | (c.CARDINAL <2>) |w.WORD;
-numbers = o.ORDINAL | c.CARDINAL | dec.DECIMAL | t.TIME | dt.DATE | ts.TIME_SPORTS | sr.SPORTS_RESULTS | co.CONNECTOR | sy.SYMBOL | ns.NON_PRON_SYMS;
+numbers = o.ORDINAL | c.CARDINAL | dec.DECIMAL | t.TIME | dt.DATE | co.CONNECTOR | sy.SYMBOL | ns.NON_PRON_SYMS;
+
+# Geyma: sr.SPORTS_RESULTS, ts.TIME_SPORTS
+
 words = w.WORD;
 
 word_token = 

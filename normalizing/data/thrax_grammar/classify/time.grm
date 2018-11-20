@@ -26,13 +26,11 @@ minute = ("0" | "1" | "2" | "3" | "4" | "5")  d;
 
 time =
   util.Insert["time { "]
-  util.Insert["hours: " q]
+  util.Insert["hours: "]
   hour
-  util.Insert[q]
   util.Delete[":".utf8]
-  util.Insert[" minutes: " q]
+  util.Insert[" minutes: "]
   minute
-  util.Insert[q]
   util.Insert[" }"]
 ;
 
