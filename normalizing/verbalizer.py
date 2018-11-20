@@ -17,6 +17,7 @@ class Verbalizer:
     SIL = 'sil'
     UNK = '<unk>'
     AND = 'og'
+    COMMA = 'komma'
 
     def __init__(self, path_to_grammar, path_to_lm, utf8_symbols, word_symbols):
         #TODO: error handling for grammar reading
@@ -163,10 +164,13 @@ class Verbalizer:
     def _create_verbalized_fst(self, token):
 
         token_fst = self.compiler.fst_stringcompile_token(token)
+        token_fst.draw('token.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
+        verbalized_fst.draw('verbalized.dot')
         verbalized_fst.optimize()
         verbalized_fst.project(True)
         verbalized_fst.rmepsilon()
+        verbalized_fst.draw('verbalized_final.dot')
 
         return verbalized_fst
 
@@ -182,7 +186,9 @@ class Verbalizer:
         #     [['þúsund'], ['tveir', 'tvær', 'tvö'], ['hundruð]],
         #     [[...]]]
 
+
         verbalized_arr = self._clean_connectors(verbalized_arr)
+
         if not self._needs_splitting(verbalized_arr):
             return verbalized_arr
 
@@ -235,8 +241,19 @@ class Verbalizer:
 
     def _remove_connectors(self, elem):
 
+        decimal = elem.split(self.COMMA)
+        if len(decimal) == 2:
+            arr = self._delete_and(decimal[0].split())
+            arr2 = self._delete_and(decimal[1].split())
+            arr.append(self.COMMA)
+            arr.extend(arr2)
+        else:
+            arr = self._delete_and(elem.split())
+
+        return arr
+
+    def _delete_and(self, arr):
         DELETE = 'delete_me'
-        arr = elem.split()
 
         if self.AND in arr and len(arr) > 3:
             last_and_index = len(arr) - arr[::-1].index(self.AND) - 1
@@ -244,12 +261,9 @@ class Verbalizer:
                 arr[arr.index(self.AND)] = DELETE
                 if not self.AND in arr:
                     break
-
         while DELETE in arr:
             arr.remove(DELETE)
-
         return arr
-
 
     #
     # DISAMBIGUATE AND FINALIZE VERBALIZATION
@@ -305,6 +319,7 @@ class Verbalizer:
         word_fst.arcsort()
         lm_intersect = pn.intersect(word_fst, self.lm)
         lm_intersect.optimize()
+        lm_intersect.draw('lm_intersect.dot')
         shortest_path = pn.shortestpath(lm_intersect).optimize()
         return shortest_path
 
