@@ -4,8 +4,6 @@
 """
 Contains tokenizer methods from the nltk.tokenize library.
 
-TODO: do we need adaption to Icelandic? Vilhjálmur's tokenizer?
-If this class does not get extended in the course of the project, move these methods to a util module
 """
 
 from nltk.tokenize import sent_tokenize
