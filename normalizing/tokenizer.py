@@ -19,10 +19,15 @@ class Tokenizer:
         # remove % and @ from the4th list as compared to original PUNCTUATION:
         self.tokenizer.PUNCTUATION = [
             (re.compile(r'([:,])([^\d])'), r' \1 \2'),
+            # ABN: added to handle non-pronunceable dashes, like Súes-skurðinn'
+            # keep dashes after digits and ordinals, and SNAV (directions). Add 'a-ö'?
+            (re.compile(r'([^\.\dSNAV])([-])'), r'\1 '),
             (re.compile(r'([:,])$'), r' \1 '),
             (re.compile(r'\.\.\.'), r' ... '),
             (re.compile(r'[;#$&]'), r' \g<0> '),
-            (re.compile(r'([^\.])(\.)([\]\)}>"\']*)\s*$'), r'\1 \2\3 '),  # Handles the final period. #ABN: change this to deal with ordinals at the end of sentence
+            # Handles the final period.
+            # #ABN: changed this to deal with ordinals at the end of sentence: [^\.] -> [^\.\d], don't detach '.' after a digit. (Might be too general)
+            (re.compile(r'([^\.\d])(\.)([\]\)}>"\']*)\s*$'), r'\1 \2\3 '),
             (re.compile(r'[?!]'), r' \g<0> '),
 
             (re.compile(r"([^'])' "), r"\1 ' "),
@@ -33,16 +38,8 @@ class Tokenizer:
         return sentence_list
 
     def tokenize_words(self, sentence):
-        # drullumix - need to fix this within the tokenizer
-        # the tokenizer always cuts the last dot of the sentence, even if it is a date like '14.10.'
-        # don't want that.
-        remove_last = False
-        if re.match('.*\d{1,2}\.\d{1,2}\.$', sentence):
-            sentence = sentence + ' auka'
-            remove_last = True
         word_list = self.tokenizer.tokenize(sentence)
-        if remove_last:
-            word_list = word_list[:-1]
+
         return word_list
 
 
@@ -56,7 +53,7 @@ def main():
                                    "október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í "
                                    "heimildarmyndinni Nýja Ísland sem sýnd var á Stöð 2 í vikunni.")
 
-    w_list = tok.tokenize_words(s_list[1])
+    w_list = tok.tokenize_words('í Súes-skurðinn 3-5 á A-landi V-til fyrir ab-mjólk handa A-landsliðinu þann 5. des.')
 
     print(' '.join(w_list))
 
