@@ -21,13 +21,13 @@ ordinals_100_999 = Optimize[hundreds1 util.Delete["00."] |
 ;
 
 #Later: check weights in Ingas grammar
-ordinals = Optimize[units | teens | ordinals_20_99 | ordinals_100_999];
+export ORDINAL = Optimize[units | teens | ordinals_20_99 | ordinals_100_999];
 
 s = utf.space;
 
 ordinal_markup =
   util.Delete["ordinal|integer:"]
-  ordinals
+  ORDINAL
   util.Delete[s* "|"]
 ;
 
