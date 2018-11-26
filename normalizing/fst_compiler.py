@@ -75,23 +75,26 @@ class FST_Compiler:
             print('Token ' + str(token) + ' does not have a semiotic class!')
             return
 
-        semiotic_class = token.semiotic_class.name + self.ATTR_DIV
-        label_fst = self._get_basic_fst(semiotic_class)
-        last_attr_fst = None
-        for attr in token.semiotic_class.grammar_attributes():
-            attr_str = ' '.join(attr) + ' ' + self.ATTR_DIV + ' '
-            attr_fst = self._get_basic_fst(attr_str, unknown_to_zero=True)
-            # for semiotic classes having more than one attribute, e.g. decimal: integer_part and fractional_part
-            if last_attr_fst:
-                pn_attr = pn.Fst.from_pywrapfst(attr_fst)
-                last_attr_fst = pn.Fst.concat(last_attr_fst, pn_attr)
-            else:
-                last_attr_fst = pn.Fst.from_pywrapfst(attr_fst)
+      #  semiotic_class = token.semiotic_class.name + self.ATTR_DIV
+      #  label_fst = self._get_basic_fst(semiotic_class)
+      #  last_attr_fst = None
+      #  for attr in token.semiotic_class.grammar_attributes():
+      #      attr_str = ' '.join(attr) + ' ' + self.ATTR_DIV + ' '
+      #      attr_fst = self._get_basic_fst(attr_str, unknown_to_zero=True)
+      #      # for semiotic classes having more than one attribute, e.g. decimal: integer_part and fractional_part
+      #      if last_attr_fst:
+      #          pn_attr = pn.Fst.from_pywrapfst(attr_fst)
+      #          last_attr_fst = pn.Fst.concat(last_attr_fst, pn_attr)
+      #      else:
+      #          last_attr_fst = pn.Fst.from_pywrapfst(attr_fst)
 
-        pn_label = pn.Fst.from_pywrapfst(label_fst)
-        pn_attr = pn.Fst.from_pywrapfst(last_attr_fst)
-        input_fst = pn.Fst.concat(pn_label, pn_attr)
-        pynini_fst = pn.Fst.from_pywrapfst(input_fst)
+        token_string = token.semiotic_class.serialize_to_string()
+        token_fst = self._get_basic_fst(token_string, unknown_to_zero=True)
+        pynini_fst = pn.Fst.from_pywrapfst(token_fst)
+        #pn_label = pn.Fst.from_pywrapfst(label_fst)
+        #pn_attr = pn.Fst.from_pywrapfst(last_attr_fst)
+        #input_fst = pn.Fst.concat(pn_label, pn_attr)
+        #pynini_fst = pn.Fst.from_pywrapfst(input_fst)
 
         return pynini_fst
 
