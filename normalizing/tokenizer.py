@@ -19,7 +19,7 @@ class Tokenizer:
             (re.compile(r'([:,])([^\d])'), r' \1 \2'),
             # ABN: added to handle non-pronunceable dashes, like Súes-skurðinn'
             # keep dashes after digits and ordinals, and SNAV (directions). Add 'a-ö'?
-            (re.compile(r'([^\.\dSNAV])([-])'), r'\1 '),
+            (re.compile(r'([^\.\d[A-ZÞÆÖÁÉÍÓÚÝÐ])([-])'), r'\1 '),
             (re.compile(r'([:,])$'), r' \1 '),
             (re.compile(r'\.\.\.'), r' ... '),
             (re.compile(r'[;#$&]'), r' \g<0> '),
@@ -51,7 +51,7 @@ def main():
                                    "október 2008. Björn og Halla voru á meðal þeirra sem sögðu sögu sína í "
                                    "heimildarmyndinni Nýja Ísland sem sýnd var á Stöð 2 í vikunni.")
 
-    w_list = tok.tokenize_words('í Súes-skurðinn 3-5 á A-landi V-til fyrir ab-mjólk handa A-landsliðinu þann 5. des.')
+    w_list = tok.tokenize_words('í Súes-skurðinn 3-5 á N- og A-landi V-til fyrir ab-mjólk handa A-landsliðinu þann 5. des.')
 
     print(' '.join(w_list))
 
