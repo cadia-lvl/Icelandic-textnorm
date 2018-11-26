@@ -1,0 +1,23 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+q = util.quote;
+s = util.s;
+
+upper = utf.ALPHABET;
+lower = utf.alphabet;
+
+acronym =
+  util.Delete["acronym|"]
+  util.Delete[s "head:" s]
+  upper
+  util.Insert[" "]
+  (upper
+  util.Insert[" "])*
+  (util.Delete[s "|" "tail:" s]
+  util.Insert[" "]
+  lower+)?
+  util.Delete[s "|"]
+;
+
+export ACRONYM = Optimize[acronym];

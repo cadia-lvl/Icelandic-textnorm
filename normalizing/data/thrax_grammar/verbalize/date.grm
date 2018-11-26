@@ -1,0 +1,22 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'ordinal.grm' as o;
+
+q = util.quote;
+s = util.s;
+
+months = Optimize[StringFile['months.tsv', 'utf8', 'utf8']];
+
+
+date =
+  util.Delete["date|"]
+  util.Delete[s "day:" s]
+  util.Delete["0"]?
+  o.ORDINAL
+  util.Delete[s "|" "month:" s]
+  util.Insert[" "]
+  months
+  util.Delete[s "|"]
+;
+
+export DATE = Optimize[date];

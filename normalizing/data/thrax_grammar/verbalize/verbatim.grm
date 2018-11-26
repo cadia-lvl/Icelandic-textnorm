@@ -1,0 +1,15 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+# A verbatim grammar is needed as a backoff since if for some reason
+# verbalization fails, it backs off to reading the string as the literal
+# sequence of characters.
+
+q = util.quote;
+s = utf.space;
+
+char = utf.notSpace util.Insert["_character"];
+
+chars = char (util.Insert[" "] char)*;
+
+export VERBATIM = Optimize[util.Delete["verbatim|verbatim:" q?] chars util.Delete[q? "|"]];

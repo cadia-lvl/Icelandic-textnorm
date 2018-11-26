@@ -1,0 +1,8 @@
+2	tuttugasti
+3	þrítugasti
+4	fertugasti
+5	fimmtugasti
+6	sextugasti
+7	sjötugasti
+8	átttugasti
+9	nítugasti
