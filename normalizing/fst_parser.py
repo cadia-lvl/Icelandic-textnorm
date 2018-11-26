@@ -18,7 +18,8 @@ CURLY_CLOSE = 125
 
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
 
-SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time']
+# TODO: can we get this from some kind of config, so that we don't have to manually maintain this list here deep down??
+SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time', 'date', 'connector', 'acronym', 'abbreviation', 'percent']
 
 CLOSING_FIELD = '}'
 TOKEN_LABEL = 'tokens'
@@ -98,13 +99,14 @@ class FSTParser:
 
         while True:
             label = self._consume_label()
+            #TODO: add safety condition - if we don't end with a } - then we have an endless loop
             if label == CLOSING_FIELD:
                 return
             field_order.append(label)
             if label in SUBSTRUCTURE:
                 self._next_state()
                 self._parse_fst(tok, sem_class_label=label)
-            else:
+            elif label:
                 value = self._parse_field_value()
                 tok.set_value({label: value}, value, sem_class_label)
 
@@ -146,10 +148,10 @@ class FSTParser:
                 label_arr.append(self.utf8_symbols.find(self.out_label).decode('utf-8'))
                 break
             else:
-                if self.out_label != COLON and self.out_label != SPACE:
+                #if self.out_label != COLON and self.out_label != SPACE:
                     # we are at the beginning of the next label, go to previous state to be able to
                     # start the parsing of the next label at the correct place
-                    self._prev_state()
+                   # self._prev_state()
                 break
 
         self._consume_whitespace()
