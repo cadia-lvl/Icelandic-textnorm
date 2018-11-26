@@ -9,6 +9,8 @@ import 'sports_results.grm' as sr;
 import 'connector.grm' as co;
 import 'pron_symbols.grm' as sy;
 import 'non_pron_symbols.grm' as ns;
+import 'acronyms.grm' as a;
+import 'abbreviations.grm' as ab;
 import 'word.grm' as w;
 import 'punctuation.grm' as p;
 
@@ -17,7 +19,7 @@ numbers = o.ORDINAL | c.CARDINAL | dec.DECIMAL | t.TIME | dt.DATE | co.CONNECTOR
 
 # Geyma: sr.SPORTS_RESULTS, ts.TIME_SPORTS
 
-words = w.WORD;
+words = a.ACRONYM | ab.ABBREVIATION | w.WORD;
 
 word_token = 
   util.Insert["tokens { "]

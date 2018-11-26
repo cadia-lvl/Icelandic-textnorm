@@ -7,7 +7,7 @@ q = util.quote;
 cardinal =
   util.Insert["cardinal { "]
   util.Insert["integer: " q]
-  (d+ | d{1,3} (".".utf8 d{3})+)
+  (d+ | d{1,3} (util.Delete[".".utf8] d{3})+)
   util.Insert[q]
   util.Insert[" }"]
 ;
