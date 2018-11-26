@@ -25,6 +25,20 @@ export ALPHABET = Optimize[
            "Æ".utf8 | "Ö".utf8 | "Å".utf8 | "Ä".utf8 | "Ø".utf8 |
            "C".utf8 | "Q".utf8 | "W".utf8 | "Z".utf8 | "Ü".utf8 |
            "Ç".utf8];
+		   
+export vowels = Optimize["a".utf8 | "á".utf8 | "e".utf8 | "é".utf8 | 
+           "i".utf8 | "í".utf8 | "o".utf8 | "ó".utf8 | "u".utf8 | 
+		   "ú".utf8 | "y".utf8 | "ý".utf8 | "æ".utf8 | "ö".utf8 | 
+		   "å".utf8 | "ä".utf8 | "ø".utf8 | "ü".utf8];
+
+export consonants = Optimize[alphabet - vowels];
+
+export VOWELS = Optimize[ "A".utf8 | "Á".utf8 | "E".utf8 | "É".utf8 | 
+           "I".utf8 | "Í".utf8 | "O".utf8 | "Ó".utf8 | "U".utf8 | 
+		   "Ú".utf8 | "Y".utf8 | "Ý".utf8 | "Æ".utf8 | "Ö".utf8 | 
+		   "Å".utf8 | "Ä".utf8 | "Ø".utf8 | "Ü".utf8];
+
+export CONSONANTS = Optimize[ALPHABET - VOWELS];
 
 export u8_punct = Optimize[
            ".".utf8 | ",".utf8 | ":".utf8 | ";".utf8 | "?".utf8 |
