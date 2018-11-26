@@ -146,10 +146,24 @@ class Token(object):
             if isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Decimal):
                 if 'fractional_part:' in tuple:
                     self.semiotic_class.set_fractional_part(tuple['fractional_part:'])
+                elif sem_class_label == 'percent':
+                    updated_semclass = utterance_structure.semiotic_classes.Percent()
+                    if 'symbol:' in tuple:
+                        updated_semclass.set_symbol(tuple['symbol:'])
+                        updated_semclass.set_decimal(self.semiotic_class)
+                        self.semiotic_class = updated_semclass
 
             elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Time):
                 if 'minutes:' in tuple:
                     self.semiotic_class.set_minutes(tuple['minutes:'])
+
+            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Date):
+                if 'month:' in tuple:
+                    self.semiotic_class.set_month(tuple['month:'])
+
+            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Acronym):
+                if 'tail:' in tuple:
+                    self.semiotic_class.set_tail(tuple['tail:'])
 
         elif sem_class_label:
             self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
@@ -180,6 +194,36 @@ class Token(object):
             else:
                 # Error
                 print('We should have hours as initial field in time!')
+
+        if label == 'date':
+            d = utterance_structure.semiotic_classes.Date()
+            if 'day:' in content:
+                d.set_day(content['day:'])
+                return d
+            else:
+                # Error
+                print('We should have day as initial field in date!')
+
+        if label == 'acronym':
+            d = utterance_structure.semiotic_classes.Acronym()
+            if 'head:' in content:
+                d.set_head(content['head:'])
+                return d
+            else:
+                # Error
+                print('We should have head as initial field in acronym!')
+
+        if label == 'abbreviation':
+            d = utterance_structure.semiotic_classes.Abbreviation()
+            if 'abbr:' in content:
+                d.set_abbreviation(content['abbr:'])
+                return d
+            else:
+                # Error
+                print('We should have abbreviation as initial field in abbreviation!')
+
+        if label == 'percent':
+            d = utterance_structure.semiotic_classes.Percent()
 
 
     def print(self):
