@@ -156,7 +156,8 @@ class Acronym:
             self.head = val[0]
             self.tail = val[1]
         else:
-            self.tail = '' # tail attribute is optional for an acronym: 'DVD' vs. 'DVD-diskur'
+            self.head = ''
+            self.tail = None # tail attribute is optional for an acronym: 'DVD' vs. 'DVD-diskur'
         self.preserve_ord = preserve_ord
 
     def set_head(self, val):
@@ -169,7 +170,10 @@ class Acronym:
         return 'Acronym: ' + str(self.grammar_attributes())
 
     def serialize_to_string(self):
-        return 'acronym|head: ' + self.head + '| tail: ' + self.tail + '|'
+        if self.tail:
+            return 'acronym|head: ' + self.head + '| tail: ' + self.tail + '|'
+        else:
+            return 'acronym|head: ' + self.head + '|'
 
     def grammar_attributes(self):
         return [('head:', self.head), ('tail:', self.tail)
