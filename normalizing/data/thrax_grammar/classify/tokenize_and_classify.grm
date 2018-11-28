@@ -11,15 +11,25 @@ import 'pron_symbols.grm' as sy;
 import 'non_pron_symbols.grm' as ns;
 import 'acronyms.grm' as a;
 import 'abbreviations.grm' as ab;
+import 'nsw.grm' as nsw;
 import 'word.grm' as w;
 import 'punctuation.grm' as p;
 
-#types = o.ORDINAL | (c.CARDINAL <2>) |w.WORD;
-numbers = o.ORDINAL | c.CARDINAL | dec.DECIMAL | t.TIME | dt.DATE | co.CONNECTOR | sy.SYMBOL | ns.NON_PRON_SYMS;
+semiotic_class = o.ORDINAL 
+					| c.CARDINAL 
+					| dec.DECIMAL 
+					| t.TIME 
+					| dt.DATE 
+					| co.CONNECTOR 
+					| sy.SYMBOL 
+					| ns.NON_PRON_SYMS
+					| a.ACRONYM
+					| ab.ABBREVIATION
+					| nsw.NSW;
 
 # Geyma: sr.SPORTS_RESULTS, ts.TIME_SPORTS
 
-words = a.ACRONYM | ab.ABBREVIATION | w.WORD;
+words = w.WORD;
 
 word_token = 
   util.Insert["tokens { "]
@@ -27,24 +37,20 @@ word_token =
   util.Insert[" }"]
 ;
 
-number_token = 
+semclass_token = 
   util.Insert["tokens { "]
-  numbers
+  semiotic_class
   util.Insert[" }"]
 ;
-
 
 token_plus_punct = 
   ((p.PUNCT util.Insert[" "])*
   word_token
   (util.Insert[" "] p.PUNCT)*) |
-  number_token
+  (semclass_token
+  (util.Insert[" "] p.PUNCT)*)
 ;
 
-#token_plus_punct = 
-#  (p.PUNCT util.Insert[" "])*
-#  types
-#  (util.Insert[" "] p.PUNCT)*
-#;
+export TOKENIZE_AND_CLASSIFY = Optimize[token_plus_punct (" " (token_plus_punct|p.PUNCT))*];
 
-export TOKENIZE_AND_CLASSIFY = Optimize[token_plus_punct (" " token_plus_punct)*];
+
