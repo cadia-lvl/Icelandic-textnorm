@@ -7,17 +7,18 @@ import 'date.grm' as date;
 
 q = util.quote;
 
-#
+######################################
 # Maps input of the form
 #
 # 2018-2022
 #
 # into
 #
-# connector { from: "2018" connector: "-" to: "2022" }
+# connector { from { cardinal { integer: "2018" } } connector: "-" to {
+# cardinal { integer: "2022" } } }
 #
 # the 'from' and the 'to' elements have to be of the same class
-#
+########################################
 
 conn = "-".utf8;
 cards = card.CARDINAL;

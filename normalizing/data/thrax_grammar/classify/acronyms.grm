@@ -1,6 +1,21 @@
 import '../utf8.grm' as utf;
 import '../util.grm' as util;
 
+########################################################
+#
+# Acronyms: 
+#
+# all uppercase (DNA CD NATO)
+# optionally connected to a normal word with a dash (DNA-rannsóknir)
+#
+# Maps input like 'DNA', 'RNA-vírus', into:
+#
+# acronym { head: "RNA" tail: "vírus" }
+#
+# the tail attribute is optional
+#
+########################################################
+
 q = util.quote;
 upper = utf.ALPHABET;
 alpha = utf.alphabet;

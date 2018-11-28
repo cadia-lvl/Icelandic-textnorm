@@ -1,6 +1,18 @@
 import '../utf8.grm' as utf;
 import '../util.grm' as util;
 
+
+########################################################
+#
+# Cardinal: 
+#
+# Maps input like '34' '9781034' '52.346.122' into:
+# 
+# cardinal { integer: "52346122" }
+#
+#
+########################################################
+
 d = utf.digits;
 q = util.quote;
 

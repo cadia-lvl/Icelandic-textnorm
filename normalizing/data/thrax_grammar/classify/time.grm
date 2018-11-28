@@ -4,17 +4,18 @@ import '../util.grm' as util;
 d = utf.digits;
 q = util.quote;
 
+###########################################
 # Maps input of the form
 #
-# 3:30
+# 13:30
 #
 # into
 #
-# time { hour: 3 minute: 30 }
+# time { hour: 13 minute: 30 }
 #
 # Sparrowhawk: Hours and minutes fields are defined as ints, so here we don't use quotes.
-# But how are these different from cardinals, which are quoted? Keep the quotes for now
-
+# But how are these different from cardinals, which are quoted? 
+############################################
 
 hour =
     "0"? d

@@ -1,37 +1,27 @@
 import '../utf8.grm' as utf;
 import '../util.grm' as util;
 
-d = utf.digits;
-q = util.quote;
-
-# For now, only digit representation of dates, month names will have to be added.
-
-# Numbers from 1-12, single digits optionally preceded by "0"
-
-month = (("0".utf8)? d) | d | "10" | "11" | "12";
-
-# Any number from 1-31:
-
-day = (("0".utf8)? d) | "1" d | "2" d | "30" | "31";
-
-# Any four digit number beginning with 1 or 2
-
-year = ("1" | "2") d{3};
-
-
-# Maps input of the form
-#
-# 7.12.
+#########################################
+# Maps input of the form: '7.12.2010'
 #
 # into
 #
-# date { day: "7" month "12" }
+# date { day: "7" month: "12" year: "2010" }
 #
-# Todo: expand to dmy:
+# Year is optional, '7.12.' also parses into date
 #
-# date { month: "January" day: "3" year: "1980" } (English, Sparrowhawk)
-#
-# Etc.
+##########################################
+
+d = utf.digits;
+q = util.quote;
+s = util.s;
+
+day = (("0".utf8)? d) | "1" d | "2" d | "30" | "31";
+
+# Months as digits: numbers from 1-12, single digits optionally preceded by "0"
+month = (("0".utf8)? d) | d | "10" | "11" | "12";
+
+year = ("1" | "2") d{3};
 
 dm =
   util.Insert["date { "]
@@ -42,21 +32,10 @@ dm =
   month
   util.Delete[".".utf8]
   util.Insert[q]
-  util.Insert[" }"];
-
-#dmy =
-#  u.I["date { "]
-#  u.I["day: " q]
-#  day
-#  u.D[" "+]
-#  u.I[q " month: " q]
-#  month
-#  u.D[","]?
-#  u.D[" "+]
-#  u.I[q " year: " q]
-#  year
-#  u.I[q]
-#  u.I[" preserve_order: true"]
-#  u.I[" }"];
+  (util.Insert[" year: " q]
+  year
+  util.Insert[q])?
+  util.Insert[" }"]
+;
 
 export DATE = Optimize[dm];

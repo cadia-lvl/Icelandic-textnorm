@@ -4,16 +4,14 @@ import '../util.grm' as util;
 d = utf.digits;
 q = util.quote;
 
-
-# Maps input of the form
-#
-# 10.25
+##########################################
+# Maps input of the form '10,25'
 #
 # into 
 #
 # decimal { integer_part: "10" fractional_part: "25" }
 #
-# The fractional part is optional. Can we use this instead of numbers.grm?
+###########################################
 
 
 decimal =

@@ -1,6 +1,16 @@
 import '../utf8.grm' as utf;
 import '../util.grm' as util;
 
+########################################################
+#
+# Abbreviations: 
+#
+# Maps input like 't.d.' 'kl' 'f.' into:
+#
+# abbreviation { abbr: "t.d." }
+#
+########################################################
+
 q = util.quote;
 lower = utf.alphabet;
 dot = ".".utf8;
