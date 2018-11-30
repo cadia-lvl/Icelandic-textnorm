@@ -3,7 +3,7 @@
 
 import jsonpickle
 from enum import Enum
-import utterance_structure.semiotic_classes
+from utterance_structure.semiotic_classes import *
 
 class UtteranceCollection:
 
@@ -95,8 +95,12 @@ class Token(object):
     def set_token_type(self, token_type):
         self.token_type = token_type
 
-    def set_semiotic_class(self, sem_class):
-        self.semiotic_class = sem_class
+    #def set_semiotic_class(self, sem_class):
+    #    self.semiotic_class = sem_class
+
+    def set_semiotic_class(self, label):
+        self.semiotic_class = SemioticClasses(label).semiotic_class
+        self.set_token_type(TokenType.SEMIOTIC_CLASS)
 
     def set_name(self, name):
         self.name = name
@@ -118,59 +122,68 @@ class Token(object):
             return True
         return False
 
-    def set_value(self, tuple, value, sem_class_label):
-        self.name = value
-        if 'name:' in tuple:
-            self.name = tuple['name:']
+    def has_semiotic_class(self):
+        if self.semiotic_class:
+            return True
+        return False
+
+    def set_value(self, tuple, sem_class_label):
+        #self.name = value
+        label = tuple[0]
+        value = tuple[1]
+        self.set_name(value)
+        if label == 'name:':
+            self.name = value
             self.word = self.name.lower()
 
-        if 'pause_length:' in tuple:
-            val = tuple['pause_length:']
-            if val == 'PAUSE_SHORT':
+        if label == 'pause_length:':
+            if value == 'PAUSE_SHORT':
                 self.pause_length = PauseLength.PAUSE_SHORT
-            elif val == 'PAUSE_MEDIUM':
+            elif value == 'PAUSE_MEDIUM':
                 self.pause_length = PauseLength.PAUSE_MEDIUM
-            elif val == 'PAUSE_LONG':
+            elif value == 'PAUSE_LONG':
                 self.pause_length = PauseLength.PAUSE_LONG
 
-        if 'phrase_break:' in tuple:
-            if tuple['phrase_break:'] == 'true':
+        if label == 'phrase_break:':
+            if value == 'true':
                 self.phrase_break = True
 
-        if 'type:' in tuple:
-            if tuple['type:'] == 'PUNCT':
+        if label == 'type:':
+            if value == 'PUNCT':
                 self.token_type = TokenType.PUNCT
 
         if self.semiotic_class and sem_class_label:
+            self.semiotic_class.set_attribute(tuple, sem_class_label)
+
             # add to existing object
-            if isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Decimal):
-                if 'fractional_part:' in tuple:
-                    self.semiotic_class.set_fractional_part(tuple['fractional_part:'])
-                elif sem_class_label == 'percent':
-                    updated_semclass = utterance_structure.semiotic_classes.Percent()
-                    if 'symbol:' in tuple:
-                        updated_semclass.set_symbol(tuple['symbol:'])
-                        updated_semclass.set_decimal(self.semiotic_class)
-                        self.semiotic_class = updated_semclass
+            #if isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Decimal):
+            #    if 'fractional_part:' in tuple:
+            #        self.semiotic_class.set_fractional_part(tuple['fractional_part:'])
+             #   elif sem_class_label == 'percent':
+             #       updated_semclass = utterance_structure.semiotic_classes.Percent()
+             #       if 'symbol:' in tuple:
+             #           updated_semclass.set_symbol(tuple['symbol:'])
+             #           updated_semclass.set_decimal(self.semiotic_class)
+             #           self.semiotic_class = updated_semclass
 
-            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Time):
-                if 'minutes:' in tuple:
-                    self.semiotic_class.set_minutes(tuple['minutes:'])
+           # elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Time):
+           #     if 'minutes:' in tuple:
+            #        self.semiotic_class.set_minutes(tuple['minutes:'])
 
-            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Date):
-                if 'month:' in tuple:
-                    self.semiotic_class.set_month(tuple['month:'])
+            #elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Date):
+            #    if 'month:' in tuple:
+             #       self.semiotic_class.set_month(tuple['month:'])
 
-            elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Acronym):
-                if 'tail:' in tuple:
-                    self.semiotic_class.set_tail(tuple['tail:'])
+            #elif isinstance(self.semiotic_class, utterance_structure.semiotic_classes.Acronym):
+            #    if 'tail:' in tuple:
+            #        self.semiotic_class.set_tail(tuple['tail:'])
 
-        elif sem_class_label:
-            self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
-            self.token_type = TokenType.SEMIOTIC_CLASS
+        #elif sem_class_label:
+         #   self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
+          #  self.token_type = TokenType.SEMIOTIC_CLASS
 
 
-
+    """
     def get_semiotic_class(self, label, content):
 
         if label == 'cardinal':
@@ -224,7 +237,7 @@ class Token(object):
 
         if label == 'percent':
             d = utterance_structure.semiotic_classes.Percent()
-
+"""
 
     def print(self):
         print('TokenType: ' + str(self.token_type))

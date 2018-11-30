@@ -54,7 +54,7 @@ class Cardinal(SemioticClass):
     def __str__(self):
         return 'Cardinal integer: ' + self.integer
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.INT_ATTR:
             self.integer = attr_value[1]
@@ -82,7 +82,7 @@ class Ordinal(SemioticClass):
     def __str__(self):
         return 'Ordinal integer: ' + self.integer
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.INT_ATTR:
             self.integer = attr_value[1]
@@ -112,7 +112,7 @@ class Decimal(SemioticClass):
         self.fractional_part = None
         self.preserve_ord = preserve_ord
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.INT_PART:
             self.set_integer_part(attr_value[1])
@@ -155,7 +155,7 @@ class Time(SemioticClass):
         self.hours = None
         self.minutes = None
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.HOURS:
             self.set_hours(attr_value[1])
@@ -200,7 +200,7 @@ class Date(SemioticClass):
         self.month = None
         self.year = None
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.DAY:
             self.set_day(attr_value[1])
@@ -310,7 +310,7 @@ class Acronym(SemioticClass):
         self.head = None
         self.tail = None
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.HEAD:
             self.set_head(attr_value[1])
@@ -350,7 +350,7 @@ class Abbreviation(SemioticClass):
     def __str__(self):
         return 'Abbreviation: ' + str(self.grammar_attributes())
 
-    def set_attribute(self, attr_value):
+    def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
         if attr_value[0] == self.ABBR:
             self.set_abbreviation(attr_value[1])
