@@ -299,6 +299,41 @@ class Connector(SemioticClass):
     def grammar_attributes(self):
         return [(self.from_val.name, self.from_val), (self.CONN, self.connector), (self.to_val.name, self.to_val)]
 
+class Telephone(SemioticClass):
+    #telephone { head: "569" tail: "1122" }
+    HEAD = 'head:'
+    TAIL = 'tail:'
+
+    def __init__(self, preserve_ord=False):
+        super().__init__('telephone', preserve_ord)
+        self.head = None
+        self.tail = None
+
+    def set_attribute(self, attr_value, label=''):
+        super().set_attribute(attr_value)
+        if attr_value[0] == self.HEAD:
+            self.set_head(attr_value[1])
+        elif attr_value[0] == self.TAIL:
+            self.set_tail(attr_value[1])
+        else:
+            super().invalid_attribute(attr_value)
+
+    def set_head(self, val):
+        self.head = val
+
+    def set_tail(self, val):
+        self.tail = val
+
+    def __str__(self):
+        return 'Telephone: ' + str(self.grammar_attributes())
+
+    def serialize_to_string(self):
+        return '{}{}{}{}{}{}{}{}'.format(
+                self.name, self.DIV, self.HEAD, self.head, self.DIV, self.TAIL, self.tail, self.DIV)
+
+    def grammar_attributes(self):
+        return [(self.HEAD, self.head), (self.TAIL, self.tail)]
+
 
 class Acronym(SemioticClass):
 
