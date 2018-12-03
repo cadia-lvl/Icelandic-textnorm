@@ -70,10 +70,13 @@ card_6_digit_kennitala =
 
 tel =
   util.Insert["telephone { "]
-  card_3_digit
+  util.Insert["head: " q]
+  d{3}
+  util.Insert[q]
   util.Delete[non_speak]
-  util.Insert[" "]
-  card_4_digit
+  util.Insert[" tail: " q]
+  d{4}
+  util.Insert[q]
   util.Insert[" }"]
   ;
 
@@ -90,11 +93,17 @@ bank =
   ;
 
 person_id =
-  util.Insert["personal_id: { "]
-  card_6_digit_kennitala
+  util.Insert["personal_id { "]
+  card_2_digit
+  util.Insert[" "]
+  card_2_digit
+  util.Insert[" "]
+  card_2_digit
   util.Delete[non_speak]
   util.Insert[" "]
-  card_4_digit_kennitala
+  card_2_digit
+  util.Insert[" "]
+  card_2_digit
   util.Insert[" }"]
   ;
 

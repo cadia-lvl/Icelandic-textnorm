@@ -14,7 +14,7 @@ q = util.quote;
 #
 # into
 #
-# connector { from { cardinal { integer: "2018" } } connector: "-" to {
+# connector { cardinal { integer: "2018" } } connector: "-" 
 # cardinal { integer: "2022" } } }
 #
 # the 'from' and the 'to' elements have to be of the same class
