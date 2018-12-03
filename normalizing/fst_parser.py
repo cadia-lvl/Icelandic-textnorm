@@ -19,7 +19,7 @@ CURLY_CLOSE = 125
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
 
 # TODO: can we get this from some kind of config, so that we don't have to manually maintain this list here deep down??
-SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time', 'date', 'connector', 'acronym', 'abbreviation', 'percent']
+SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time', 'date', 'connector', 'acronym', 'abbreviation', 'percent', 'telephone']
 
 CLOSING_FIELD = '}'
 TOKEN_LABEL = 'tokens'
@@ -102,13 +102,15 @@ class FSTParser:
             #TODO: add safety condition - if we don't end with a } - then we have an endless loop
             if label == CLOSING_FIELD:
                 return
+            if label and not tok.has_semiotic_class():
+                tok.set_semiotic_class(label)
             field_order.append(label)
             if label in SUBSTRUCTURE:
                 self._next_state()
                 self._parse_fst(tok, sem_class_label=label)
             elif label:
                 value = self._parse_field_value()
-                tok.set_value({label: value}, value, sem_class_label)
+                tok.set_value((label, value), sem_class_label)
 
         self._consume_whitespace()
 
