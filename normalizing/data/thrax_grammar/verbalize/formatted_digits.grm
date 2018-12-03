@@ -1,0 +1,19 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as num;
+
+d = utf.digits;
+s = util.s;
+
+digit = num.cardinal_mask util.Insert[" "];
+
+tel =
+  util.Delete["telephone|head:" s]
+  (digit){3}
+  util.Delete[s "|" s]
+  util.Delete[s "tail:" s]
+  (digit){4}
+  util.Delete[s "|"]
+;
+
+export FORMATTED_DIGITS = Optimize[tel];

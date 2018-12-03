@@ -3,10 +3,12 @@ import 'ordinal.grm' as o;
 import 'decimal.grm' as d;
 import 'time.grm' as t;
 import 'date.grm' as dt;
+import 'connector.grm' as c;
 import 'acronyms.grm' as a;
 import 'abbreviations.grm' as ab;
 import 'percent.grm' as p;
+import 'formatted_digits.grm' as f;
 import 'verbatim.grm' as v;
 
 
-export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | d.DECIMAL_MARKUP | t.TIME | dt.DATE | a.ACRONYM | ab.ABBREVIATION | p.PERCENT | v.VERBATIM];
+export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | d.DECIMAL_MARKUP | t.TIME | dt.DATE | c.CONNECTOR |a.ACRONYM | ab.ABBREVIATION | p.PERCENT | f.FORMATTED_DIGITS | v.VERBATIM];

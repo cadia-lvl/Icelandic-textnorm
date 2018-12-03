@@ -1,0 +1,25 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as num;
+import 'ordinal.grm' as ord;
+import 'decimal.grm' as dec;
+import 'date.grm' as date;
+
+q = util.quote;
+s = util.s;
+
+conn = "-".utf8 : "til";
+
+connector =
+  util.Delete["connector|"]
+  (num.CARDINAL_MARKUP|ord.ORDINAL_MARKUP|dec.DECIMAL_MARKUP|date.DATE)
+  util.Insert[" "]
+  util.Delete[s "connector:"]
+  conn
+  util.Delete[s "|" s]
+  util.Insert[" "]
+  (num.CARDINAL_MARKUP|ord.ORDINAL_MARKUP|dec.DECIMAL_MARKUP|date.DATE)
+;
+
+export CONNECTOR = Optimize[connector];
+  

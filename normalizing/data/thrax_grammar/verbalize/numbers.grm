@@ -10,6 +10,7 @@ delzero = "0".utf8 : "".utf8;
 insand = "".utf8 : " og ".utf8;
 
 cardinal_simple = StringFile['cardinals.tsv', 'utf8', 'utf8'];
+cardinal_m = StringFile['cardinal_mask.tsv', 'utf8', 'utf8'];
 export neutral_units2to9 = Optimize[StringFile['neutral_units2to9.txt', 'utf8', 'utf8']];
 teens = StringFile['teens.tsv', 'utf8', 'utf8'];
 ten = "10".utf8 : "tíu".utf8;
@@ -20,6 +21,7 @@ units_notNeutral = Optimize[StringFile['units_notNeutral.txt', 'utf8', 'utf8']];
 export neutral_units = one_neutr | neutral_units2to9;
 export units = units_notNeutral | neutral_units;
 export cardinal_simple_all = cardinal_simple;
+export cardinal_mask = cardinal_m;
 
 cardinal_decades = (decades util.Delete["0".utf8]) |
   decades util.Insert[" og ".utf8] cardinal_simple;
@@ -78,12 +80,12 @@ cardinal = Optimize[ zero | cardinal_simple_all | teensplus | cardinal_decades |
 export CARDINAL = cardinal;
 export DIGITS = cardinal;
 
-s = utf.space;
+s = util.s;
 
 cardinal_markup =
-  util.Delete["cardinal|integer:"]
+  util.Delete["cardinal|integer:" s]
   cardinal
-  util.Delete[s* "|"]
+  util.Delete[s "|"]
 ;
 
 export CARDINAL_MARKUP = Optimize[cardinal_markup];
