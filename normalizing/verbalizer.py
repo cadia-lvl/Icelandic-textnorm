@@ -7,6 +7,7 @@ Verbalize semiotic class tokens for an utterance.
 """
 import pynini as pn
 import graphs
+from timeit import default_timer as timer
 from fst_compiler import FST_Compiler
 from utt_coll import TokenType
 from verbalized import Verbalized
@@ -17,17 +18,20 @@ class Verbalizer:
     SIL = 'sil'
     UNK = '<unk>'
     AND = 'og'
-    COMMA = 'komma'
+    SEPARATORS = ['komma', 'til']
 
     def __init__(self, path_to_grammar, path_to_lm, utf8_symbols, word_symbols):
         #TODO: error handling for grammar reading
         self.thrax_grammar = pn.Fst.read(path_to_grammar)
         self.thrax_grammar.arcsort()
         self.word_symbols = word_symbols
+        start = timer()
         self.lm = pn.Fst.read(path_to_lm)
         self.lm.set_input_symbols(self.word_symbols)
         self.lm.set_output_symbols(self.word_symbols)
         self.lm.arcsort()
+        end = timer()
+        print('LM-loading: ' + str(end - start))
         self.utf8_symbols = utf8_symbols
         self.compiler = FST_Compiler(utf8_symbols, word_symbols)
         self.oov_queue = None
@@ -77,7 +81,7 @@ class Verbalizer:
         for a in arr:
             for elem in a:
                 # do we have a list of lists?
-                if len(elem[0]) > 1:
+                if isinstance(elem, list):
                     return ''
                 res.append(elem)
 
@@ -165,7 +169,9 @@ class Verbalizer:
 
         token_fst = self.compiler.fst_stringcompile_token(token)
         token_fst.draw('token.dot')
+        self.thrax_grammar.draw('formatted_digits_grammar.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
+        fst_size = verbalized_fst.num_states()
         verbalized_fst.draw('verbalized.dot')
         verbalized_fst.optimize()
         verbalized_fst.project(True)
@@ -240,14 +246,17 @@ class Verbalizer:
 
 
     def _remove_connectors(self, elem):
-
-        decimal = elem.split(self.COMMA)
-        if len(decimal) == 2:
-            arr = self._delete_and(decimal[0].split())
-            arr2 = self._delete_and(decimal[1].split())
-            arr.append(self.COMMA)
-            arr.extend(arr2)
-        else:
+        removed = False
+        for sep in self.SEPARATORS:
+            splitted = elem.split(sep)
+            if len(splitted) == 2:
+                arr = self._delete_and(splitted[0].split())
+                arr2 = self._delete_and(splitted[1].split())
+                arr.append(sep)
+                arr.extend(arr2)
+                removed = True
+                break
+        if not removed:
             arr = self._delete_and(elem.split())
 
         return arr
