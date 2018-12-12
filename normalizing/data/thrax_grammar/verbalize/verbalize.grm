@@ -8,7 +8,8 @@ import 'acronyms.grm' as a;
 import 'abbreviations.grm' as ab;
 import 'percent.grm' as p;
 import 'formatted_digits.grm' as f;
+import 'nsw.grm' as nsw;
 import 'verbatim.grm' as v;
 
 
-export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | d.DECIMAL_MARKUP | t.TIME | dt.DATE | c.CONNECTOR |a.ACRONYM | ab.ABBREVIATION | p.PERCENT | f.FORMATTED_DIGITS | v.VERBATIM];
+export ALL = Optimize[o.ORDINAL_MARKUP | n.CARDINAL_MARKUP | d.DECIMAL_MARKUP | t.TIME | dt.DATE | c.CONNECTOR |a.ACRONYM | ab.ABBREVIATION | p.PERCENT | f.FORMATTED_DIGITS | nsw.NSW | v.VERBATIM];

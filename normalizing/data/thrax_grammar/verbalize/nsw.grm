@@ -1,0 +1,17 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+q = util.quote;
+s = util.s;
+
+anything = utf.whole_alphabet+;
+
+nsw =
+  util.Delete["nsw|"]
+  util.Delete[s "nsw:" s]
+  anything
+  util.Insert["_nsw"]
+  util.Delete[s "|"]
+;
+
+export NSW = Optimize[nsw];
