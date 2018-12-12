@@ -72,7 +72,7 @@ class FST_Compiler:
 
         if not token.semiotic_class:
             # logger warn or error?
-            print('Token ' + str(token) + ' does not have a semiotic class!')
+            print('fst_compiler.fst_stringcompile_token(): Token ' + str(token) + ' does not have a semiotic class!')
             return
 
       #  semiotic_class = token.semiotic_class.name + self.ATTR_DIV
@@ -89,6 +89,7 @@ class FST_Compiler:
       #          last_attr_fst = pn.Fst.from_pywrapfst(attr_fst)
 
         token_string = token.semiotic_class.serialize_to_string()
+        print(token_string)
         token_fst = self._get_basic_fst(token_string, unknown_to_zero=True)
         pynini_fst = pn.Fst.from_pywrapfst(token_fst)
         #pn_label = pn.Fst.from_pywrapfst(label_fst)
