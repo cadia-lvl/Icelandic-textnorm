@@ -104,6 +104,7 @@ class FSTParser:
                 return
             if label and not tok.has_semiotic_class():
                 tok.set_semiotic_class(label)
+                sem_class_label=label
             field_order.append(label)
             if label in SUBSTRUCTURE:
                 self._next_state()
