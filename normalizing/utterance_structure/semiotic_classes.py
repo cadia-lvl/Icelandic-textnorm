@@ -9,6 +9,8 @@ class SemioticClasses:
 
     def __init__(self, label):
         self.available_classes = [name for name in inspect.getmembers(sys.modules[__name__])]
+        if label.endswith(':'):
+            label = label[:-1]
         self.semiotic_class = self.find_class_for(label)
 
     def find_class_for(self, label):
@@ -441,6 +443,34 @@ class Percent(SemioticClass):
 
     def grammar_attributes(self):
         return [(self.DEC_LABEL, self.decimal), (self.SYMBOL, self.symbol)]
+
+
+class NSW(SemioticClass):
+
+    NSW = 'nsw:'
+
+    def __init__(self, preserve_ord=False):
+        super().__init__('nsw', preserve_ord)
+        self.nsw = None
+
+    def __str__(self):
+        return 'Non-standard-word: ' + str(self.grammar_attributes())
+
+    def set_attribute(self, attr_value, label=''):
+        super().set_attribute(attr_value)
+        if attr_value[0] == self.NSW:
+            self.set_nsw(attr_value[1])
+        else:
+            super().invalid_attribute(attr_value)
+
+    def set_nsw(self, val):
+        self.nsw = val
+
+    def serialize_to_string(self):
+        return '{}{}{} {}{}'.format(self.name, self.DIV, self.NSW, self.nsw, self.DIV)
+
+    def grammar_attributes(self):
+        return [(self.NSW, self.nsw)]
 
 
 def main():
