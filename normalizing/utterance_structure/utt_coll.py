@@ -100,10 +100,15 @@ class Token(object):
 
     def set_semiotic_class(self, label):
         self.semiotic_class = SemioticClasses(label).semiotic_class
-        self.set_token_type(TokenType.SEMIOTIC_CLASS)
+        if self.semiotic_class:
+            self.set_token_type(TokenType.SEMIOTIC_CLASS)
 
     def set_name(self, name):
         self.name = name
+        #if self.name:
+        #    self.name += '0x0020' + name
+        #else:
+        #    self.name = name
 
     def set_word(self, wrd):
         self.word = wrd

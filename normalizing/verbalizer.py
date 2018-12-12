@@ -15,7 +15,7 @@ from verbalized import Verbalized
 
 class Verbalizer:
 
-    SIL = 'sil'
+    SIL = '<sil>'
     UNK = '<unk>'
     AND = 'og'
     SEPARATORS = ['komma', 'til']
@@ -57,7 +57,7 @@ class Verbalizer:
                 if utt.reclassify:
                     return
 
-            elif tok.semiotic_class == TokenType.PUNCT:
+            elif tok.token_type == TokenType.PUNCT:
                 words = [self.SIL]
             else:
                 words = [tok.word]

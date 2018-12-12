@@ -80,7 +80,7 @@ class FSTParser:
         self.last_token_end = token_end - 1
         token.end_index = self.last_token_end
 
-        if token.has_word():
+        if token.has_word() and not token.token_type:
             token.set_wordid(token.word)
             token.set_token_type(TokenType.WORD)
         elif set_semiotic_class:
@@ -93,7 +93,6 @@ class FSTParser:
         self.token_name = ''
 
     def _parse_fst(self, tok, sem_class_label=None):
-        # TODO: deal with this: tokens { name: "." pause_length: PAUSE_LONG phrase_break: true type: PUNCT }
         # parses fst and sets token values (name, semiotic class)
         field_order = []
 
