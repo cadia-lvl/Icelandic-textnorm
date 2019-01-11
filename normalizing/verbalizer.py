@@ -58,7 +58,8 @@ class Verbalizer:
                     return
 
             elif tok.token_type == TokenType.PUNCT:
-                words = [self.SIL]
+                #words = [self.SIL]
+                words = [tok.word]
             else:
                 words = [tok.word]
 
