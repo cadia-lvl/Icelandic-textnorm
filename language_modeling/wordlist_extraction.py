@@ -39,13 +39,14 @@ def process_corpus(corpus):
     # replace digits with '<num>' tag
     text = re.sub('(^|\s)[0-9]+', ' <num>', text)
 
-    # ensure single spaces
-    text = re.sub('\s+', ' ', text)
+    # ensure single spaces - deletes newlines as well! change
+    #text = re.sub('\s+', ' ', text)
 
     return text
 
 
-def extract_wordlist(corpus, min_occ):
+def extract_wordlist(corpus, vocab_list, min_occ):
+    print("extracting wordlist ...")
     tokens = nltk.tokenize.word_tokenize(corpus)
     fdist = nltk.FreqDist(tokens)
     res_tuples = list(filter(lambda x: x[1] >= min_occ, fdist.items()))
@@ -55,10 +56,17 @@ def extract_wordlist(corpus, min_occ):
         wordlist.append(tup[0] + '\t' + str(tup[1]))
         valid_words.add(tup[0])
 
+    for wrd in vocab_list:
+        if not wrd in valid_words:
+            wordlist.append(wrd + '\t' + '0')
+
+    vocab_set = set(vocab_list)
+    valid_words.union(vocab_set)
+
     return valid_words, wordlist
 
 def replace_oov(corpus, words):
-
+    print("replace oov with <unk> ...")
     oov_replaced = []
 
     for tok in corpus.split():
@@ -72,9 +80,12 @@ def replace_oov(corpus, words):
 
 def create_word2symbol(words):
     # fix - need more control over tokenizing, such that <num> does not get splitted up
-    words.remove('<')
-    words.remove('>')
-    words.remove('num')
+    if '<' in words:
+        words.remove('<')
+    if '>' in words:
+        words.remove('>')
+    if 'num' in words:
+        words.remove('num')
     word2sym = []
     word2sym.append('<eps> 0')
     for i in range(len(words)):
@@ -114,8 +125,12 @@ def main():
     min_occ = args.min_occ
 
     corpus_raw = infile.read()
+    if vocab_file:
+        vocab_list = open(vocab_file).read().splitlines()
+    else:
+        vocab_list = []
     clean_corpus = process_corpus(corpus_raw)
-    valid_words, wordlist = extract_wordlist(clean_corpus, min_occ)
+    valid_words, wordlist = extract_wordlist(clean_corpus, vocab_list, min_occ)
 
     clean_corpus_no_oov = replace_oov(clean_corpus, valid_words)
 
@@ -126,6 +141,7 @@ def main():
     wordlist_for_lm = basename + '_wordlist.txt'
     sym_tab_for_lm = basename + '_word_sym.txt'
 
+    print("Writing files ...")
     print_list([clean_corpus], corpus_for_lm)
     print_list([clean_corpus_no_oov], corpus_for_lm_unk)
     print_list(wordlist, wordlist_for_lm)
