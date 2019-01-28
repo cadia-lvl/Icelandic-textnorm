@@ -10,6 +10,7 @@ import 'decimal.grm' as dec;
 #
 
 q = util.quote;
+s = util.s;
 
 neg = "-".utf8;
 degree = "°".utf8;
@@ -29,20 +30,23 @@ negative =
 
 degrees = 
   util.Insert["degrees { "]
-  (cards|ords|decs)
-  util.Insert[" symbol: " q]
+  (cards|decs)
+  util.Delete[s]
+  util.Insert[" deg { symbol: " q]
   degree
   util.Insert[q]
-  util.Insert[" }"]
+  util.Insert[" } }"]
+  (util.Delete["C"])?
 ;
 
 percent =
     util.Insert["percent { "]
     (cards|decs)
-    util.Insert[" symbol: " q]
+	util.Delete[s]
+    util.Insert[" per { symbol: " q]
     perc_symbol
     util.Insert[q]
-    util.Insert[" }"]
+    util.Insert[" } }"]
 ;
 
 export SYMBOL = Optimize[negative|degrees|percent];

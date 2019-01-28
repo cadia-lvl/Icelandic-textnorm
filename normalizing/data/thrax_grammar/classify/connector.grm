@@ -30,7 +30,7 @@ dates = date.DATE;
 cardinal_conn =
 	  util.Insert["connector { "]
 	  cards
-	  util.Insert[" { connector: " q]
+	  util.Insert[" conn { sym: " q]
 	  conn
 	  util.Insert[q " } "]
 	  cards
@@ -40,7 +40,7 @@ cardinal_conn =
 ordinal_conn =
 	  util.Insert["connector { "]
 	  ords
-	  util.Insert[" { connector: " q]
+	  util.Insert[" conn { sym: " q]
 	  conn
 	  util.Insert[q " } "]
 	  ords
@@ -51,7 +51,7 @@ decimal_conn =
 	  util.Insert["connector { "]
 	  decs
 	  util.Insert[q]
-	  util.Insert[" { connector: " q]
+	  util.Insert[" conn { sym: " q]
 	  conn
 	  util.Insert[q " } "]
 	  decs
@@ -62,7 +62,7 @@ date_conn =
 	  util.Insert["connector { "]
 	  dates
 	  util.Insert[q]
-	  util.Insert[" { connector: " q]
+	  util.Insert[" conn { sym: " q]
 	  conn
 	  util.Insert[q " } "]
 	  dates
