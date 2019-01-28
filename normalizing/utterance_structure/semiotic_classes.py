@@ -253,7 +253,8 @@ class Date(SemioticClass):
 class Connector(SemioticClass):
 
     VALID_LABELS = ['cardinal', 'ordinal', 'decimal', 'date', 'time']
-    CONN = 'connector:'
+    CONN = 'conn'
+    SYM = 'sym:'
 
     def __init__(self, preserve_ord=False):
         super().__init__('connector', preserve_ord)
@@ -277,7 +278,7 @@ class Connector(SemioticClass):
                 self.to_val.set_attribute(attr_value)
             else:
                 raise ValueError
-        elif attr_value[0] == self.CONN:
+        elif attr_value[0] == self.SYM:
             self.set_connector(attr_value[1])
         else:
             raise ValueError
@@ -295,8 +296,8 @@ class Connector(SemioticClass):
         return 'Connector: ' + str(self.grammar_attributes())
 
     def serialize_to_string(self):
-        return '{}{}{} {} {} {} {}'.format(
-            self.name, self.DIV, self.from_val.serialize_to_string(), self.CONN, self.connector, self.DIV, self.to_val.serialize_to_string())
+        return '{}{}{} {}{}{} {} {} {}'.format(
+            self.name, self.DIV, self.from_val.serialize_to_string(), self.CONN, self.DIV, self.SYM, self.connector, self.DIV, self.to_val.serialize_to_string())
 
     def grammar_attributes(self):
         return [(self.from_val.name, self.from_val), (self.CONN, self.connector), (self.to_val.name, self.to_val)]
@@ -404,46 +405,83 @@ class Abbreviation(SemioticClass):
         return [(self.ABBR, self.abbr)]
 
 
+class Degrees(SemioticClass):
+
+    VALID_LABELS = ['cardinal', 'decimal']
+    DEG = 'deg'
+    SYM = 'symbol:'
+
+    def __init__(self, preserve_ord=False):
+        super().__init__('degrees', preserve_ord)
+        self.degr = None
+        self.num_value = None
+
+    def __str__(self):
+        return 'Degrees: ' + str(self.grammar_attributes())
+
+    def set_attribute(self, attr_value, label=''):
+        super().set_attribute(attr_value)
+        if label in self.VALID_LABELS:
+            sem_class = SemioticClasses(label).semiotic_class
+            self.set_num_value(sem_class)
+            self.num_value.set_attribute(attr_value)
+        elif attr_value[0] == self.SYM:
+            self.set_deg(attr_value[1])
+        else:
+            super().invalid_attribute(attr_value)
+
+    def set_deg(self, val):
+        self.degr = val
+
+    def set_num_value(self, val):
+        self.num_value = val
+
+    def serialize_to_string(self):
+        return '{}{}{} {}{}{} {} {}'.format(self.name, self.DIV, self.num_value.serialize_to_string(), self.DEG, self.DIV, self.SYM, self.degr, self.DIV)
+
+    def grammar_attributes(self):
+        return [(self.ABBR, self.abbr)]
+
+
 class Percent(SemioticClass):
     #TODO: needs cardinal as well
+    #TODO: merge with degrees
 
-    DEC_LABEL = 'decimal'
-    SYMBOL = 'symbol:'
+    VALID_LABELS = ['cardinal', 'decimal']
+    PER = 'per'
+    SYM = 'symbol:'
 
     def __init__(self, preserve_ord=False):
         super().__init__('percent', preserve_ord)
-        self.decimal = None
-        self.symbol = None
+        self.degr = None
+        self.num_value = None
 
     def __str__(self):
         return 'Percent: ' + str(self.grammar_attributes())
 
     def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
-        if label == self.DEC_LABEL:
+        if label in self.VALID_LABELS:
             sem_class = SemioticClasses(label).semiotic_class
-            if not self.decimal:
-                self.set_decimal(sem_class)
-            self.decimal.set_attribute(attr_value)
-
-        elif attr_value[0] == self.SYMBOL:
-            self.set_symbol(attr_value[1])
+            self.set_num_value(sem_class)
+            self.num_value.set_attribute(attr_value)
+        elif attr_value[0] == self.SYM:
+            self.set_per(attr_value[1])
         else:
             super().invalid_attribute(attr_value)
 
-    def set_decimal(self, val):
-        self.decimal = val
+    def set_per(self, val):
+        self.per = val
 
-    def set_symbol(self, sym):
-        self.symbol = sym
+    def set_num_value(self, val):
+        self.num_value = val
 
     def serialize_to_string(self):
-        return '{}{}{} {} {} {}'.format(
-            self.name, self.DIV, self.decimal.serialize_to_string(), self.SYMBOL, self.symbol, self.DIV)
+        return '{}{}{} {}{}{} {} {}'.format(self.name, self.DIV, self.num_value.serialize_to_string(), self.PER, self.DIV,
+                                            self.SYM, self.per, self.DIV)
 
     def grammar_attributes(self):
-        return [(self.DEC_LABEL, self.decimal), (self.SYMBOL, self.symbol)]
-
+        return [(self.PER, self.num_value)]
 
 class NSW(SemioticClass):
 
