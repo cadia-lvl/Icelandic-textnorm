@@ -1,5 +1,6 @@
 import '../utf8.grm' as utf;
 import '../util.grm' as util;
+import 'numbers.grm' as num;
 import 'decimal.grm' as dec;
 
 
@@ -7,8 +8,8 @@ sym = Optimize[StringFile['percent.tsv', 'utf8', 'utf8']];
 s = util.s;
 percent =
   util.Delete["percent|"]
-  dec.DECIMAL_MARKUP
-  util.Delete[s "symbol:"]
+  (num.CARDINAL_MARKUP|dec.DECIMAL_MARKUP)
+  util.Delete[s "per|symbol:"]
   util.Insert[" "]
   sym
   util.Delete[s "|"]

@@ -14,7 +14,7 @@ connector =
   util.Delete["connector|"]
   (num.CARDINAL_MARKUP|ord.ORDINAL_MARKUP|dec.DECIMAL_MARKUP|date.DATE)
   util.Insert[" "]
-  util.Delete[s "connector:"]
+  util.Delete[s "conn|sym:"]
   conn
   util.Delete[s "|" s]
   util.Insert[" "]
