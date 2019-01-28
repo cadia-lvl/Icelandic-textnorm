@@ -1,6 +1,7 @@
 blm	blaðamaður
 brt	brúttótonn
 brt	brúttótonna
+ca	sirka
 cl	sentilítri
 cl	sentilítrar
 cm	sentimetri
@@ -16,14 +17,14 @@ dr.	doktor
 fm	fermetrar
 fm	fermetra
 FM	F M
-gr	gramm
-gr	grömm
-gr	grömmum
-gr	gramma
-gr.	gramm
-gr.	grömm
-gr.	grömmum
-gr.	gramma
+g	gramm
+g	grömm
+g	grömmum
+g	gramma
+gr	grein
+gr	greinar
+gr.	grein
+gr.	greinar
 GR	Golfklúbbur Reykjavíkur
 GR	Golfklúbbi Reykjavíkur
 innsk	innskot
@@ -75,6 +76,10 @@ Nr	númer
 nr	númer
 Nr.	númer
 nr.	númer
+pk	pakki
+pk	pakkar
+pk	pökkum
+pk	pakka
 RVK	Reykjavík
 Rvk	Reykjavík
 rvk	Reykjavík
