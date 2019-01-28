@@ -6,8 +6,9 @@ Verbalize semiotic class tokens for an utterance.
 
 """
 import pynini as pn
-import graphs
+import copy
 from timeit import default_timer as timer
+import re
 from fst_compiler import FST_Compiler
 from utt_coll import TokenType
 from verbalized import Verbalized
@@ -132,7 +133,7 @@ class Verbalizer:
     def _validate_verbalization(self, needs_disambig, tok, utt, words):
 
         word_str = self.extract_string(words)
-        if word_str == tok.name and not utt.reclassify:
+        if len(word_str) > 1 and word_str == tok.name and not utt.reclassify:
             # verbalization failed, we create a space separated token name
             # and mark the utterance for re-classification and verbalization
             tok.name = ' '.join(word_str)
@@ -159,8 +160,15 @@ class Verbalizer:
             for c in token.name:
                 splitted_arr.append([c])
         else:
-            trans_graph = graphs.TransitionGraph(self.utf8_symbols)
-            verbalized_arr = trans_graph.extract_verbalization(verbalized_fst)
+            res = verbalized_fst.paths(output_token_type=self.utf8_symbols).ostrings()
+            p = list(res)
+            verbalized_arr = []
+            for elem in p:
+                verbal = elem.replace(' ', '')
+                verbal = verbal.replace('0x0020', ' ')
+                verbalized_arr.append(verbal)
+            #trans_graph = graphs.TransitionGraph(self.utf8_symbols)
+            #verbalized_arr = trans_graph.extract_verbalization(verbalized_fst)
             splitted_arr = self._split_verbalized_arr(verbalized_arr)
 
         return splitted_arr
@@ -170,7 +178,7 @@ class Verbalizer:
 
         token_fst = self.compiler.fst_stringcompile_token(token)
         token_fst.draw('token.dot')
-        self.thrax_grammar.draw('formatted_digits_grammar.dot')
+        #self.thrax_grammar.draw('formatted_digits_grammar.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
         fst_size = verbalized_fst.num_states()
         verbalized_fst.draw('verbalized.dot')
@@ -281,10 +289,12 @@ class Verbalizer:
 
     def disambiguate(self, verbalization):
         normalized = {}
+        replacement_dicts = {}
         for verbal_arr in verbalization.paths:
             shortest_path = self._language_model_scoring(verbal_arr)
             normalized_text = shortest_path.stringify(token_type=self.word_symbols)
             normalized[normalized_text] = pn.shortestdistance(shortest_path)
+            replacement_dicts[normalized_text] = copy.deepcopy(self.replacement_dict)
 
         best_normalized = self._lowest_cost(normalized)
 
@@ -292,6 +302,9 @@ class Verbalizer:
             #TODO: is this sufficient for multiple verbalizations?
             best_normalized = self._insert_original_oov(best_normalized)
             self.oov_queue = None
+
+        if best_normalized in replacement_dicts:
+            best_normalized = self._insert_original_words(best_normalized, replacement_dicts[best_normalized])
 
         return best_normalized
 
@@ -304,7 +317,7 @@ class Verbalizer:
         best_verbalization = ''
         for k in normalized:
             # TODO: is the second weight maybe enough, no need to go through the whole wheights list?
-            # seems that apart from the first wheight (0.0), all weights of a path have the same cost.
+            # seems that apart from the first weight (0.0), all weights of a path have the same cost.
             sum = 0.0
             for i in range(len(normalized[k])):
                 weight_as_bstring = normalized[k][i].to_string()
@@ -323,6 +336,7 @@ class Verbalizer:
     def _language_model_scoring(self, verbal_arr):
 
         word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(verbal_arr)
+        self.replacement_dict = self.compiler.replacement_dict
         word_fst.set_output_symbols(self.word_symbols)
         word_fst.optimize()
         word_fst.project(True)
@@ -343,3 +357,27 @@ class Verbalizer:
                 else:
                     text_arr[ind] = self.oov_queue.get(False)
         return ' '.join(text_arr)
+
+    def _insert_original_words(self, text, repl_dict):
+        text_arr = text.split()
+        for ind, wrd in enumerate(text_arr):
+            if self._is_tag(wrd):
+                if ind not in repl_dict:
+                    print("No replacement for " + wrd)
+                else:
+                    tag_map = repl_dict[ind]
+                    text_arr[ind] = tag_map[wrd]
+
+        return ' '.join(text_arr)
+
+    def _is_tag(self, wrd):
+        #is adjective tag
+        if re.match('l[kvh][ef][noþe]vf', wrd):
+            return True
+
+        #is numeral tag
+        elif re.match('tf[kvh][ef][noþe]', wrd):
+            return True
+
+        return False
+
