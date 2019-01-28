@@ -19,7 +19,8 @@ CURLY_CLOSE = 125
 SEPARATORS = [SPACE, CURLY_OPEN, CURLY_CLOSE]
 
 # TODO: can we get this from some kind of config, so that we don't have to manually maintain this list here deep down??
-SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time', 'date', 'connector', 'acronym', 'abbreviation', 'percent', 'telephone']
+SUBSTRUCTURE = ['cardinal', 'ordinal', 'decimal', 'time', 'date', 'connector', 'conn', 'acronym', 'degrees', 'deg',
+                'percent', 'per', 'abbreviation', 'telephone']
 
 CLOSING_FIELD = '}'
 TOKEN_LABEL = 'tokens'
