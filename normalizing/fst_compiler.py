@@ -21,6 +21,7 @@ class FST_Compiler:
         self.utf8_symbols = utf8_symbols
         self.word_symbols = word_symbols
         self.current_oov_queue = None
+        self.replacement_dict = None
 
 
     def fst_stringcompile(self, text):
@@ -47,7 +48,8 @@ class FST_Compiler:
         :param text_arr:
         :return:
         """
-        input_fst = self._get_basic_word_fst(text_arr)
+        #input_fst = self._get_basic_word_fst(text_arr)
+        input_fst = self._get_basic_tag_fst(text_arr)
         pynini_fst = pn.Fst.from_pywrapfst(input_fst)
 
         return pynini_fst, self.current_oov_queue
@@ -162,6 +164,72 @@ class FST_Compiler:
                 from_state = state_counter
                 to_state = state_counter + 1
                 for i, w in enumerate(arr):
+                    int_val = self._get_int_value_word(w)
+                    self._compile_entry(compiler, from_state, int_val, to_state)
+                    state_counter += 1
+
+                next_state = to_state + 1
+                state_counter = to_state
+
+        compiler.write("{}\n\n".format(state_counter))
+
+        input_fst = compiler.compile()
+        return input_fst
+
+    def _get_basic_tag_fst(self, text_arr):
+        # create an fst from text_arr, extracting pos-tags where applicable
+        # only use pos-tags where found, store the words for reconstruction of the utterance
+        self.current_oov_queue = queue.Queue()
+        self.replacement_dict = {}
+        compiler = fst.Compiler()
+        state_counter = 0
+        next_state = 0
+
+        for i, arr in enumerate(text_arr):
+            if not arr:
+                continue
+            # single word, single expansion
+            if len(arr) == 1:
+                for w in arr:
+                    if '_' in w:
+                        wrd = w[:w.index('_')]
+                        w = w[w.index('_') + 1:]
+                        if i in self.replacement_dict:
+                            d = self.replacement_dict[i]
+                            d[w] = wrd
+                        else:
+                            self.replacement_dict[i] = {}
+                            d = self.replacement_dict[i]
+                            d[w] = wrd
+
+                    int_val = self._get_int_value_word(w)
+                    from_state = state_counter
+                    if next_state != 0:
+                        to_state = next_state
+                        state_counter = next_state - 1
+                        next_state = 0
+                    else:
+                        to_state = state_counter + 1
+                    self._compile_entry(compiler, from_state, int_val, to_state)
+                    state_counter += 1
+
+            # multiple verbalization possibilities
+            # we are working char by char, so store the state_counter, such that
+            # all possibilities have the same from_state (starting state)
+            else:
+                from_state = state_counter
+                to_state = state_counter + 1
+                for w in arr:
+                    if '_' in w:
+                        wrd = w[:w.index('_')]
+                        w = w[w.index('_') + 1:]
+                        if i in self.replacement_dict:
+                            d = self.replacement_dict[i]
+                            d[w] = wrd
+                        else:
+                            self.replacement_dict[i] = {}
+                            d = self.replacement_dict[i]
+                            d[w] = wrd
                     int_val = self._get_int_value_word(w)
                     self._compile_entry(compiler, from_state, int_val, to_state)
                     state_counter += 1
