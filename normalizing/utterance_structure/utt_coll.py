@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import jsonpickle
+#import jsonpickle
 from enum import Enum
 from utterance_structure.semiotic_classes import *
 
@@ -29,10 +29,87 @@ class Utterance(object):
         self.classified = ""
         self.reclassify = False
 
-    def to_jsonpickle(self, filename):
-        json_enc = jsonpickle.encode(self)
-        with open(filename, 'w') as f:
-            f.write(json_enc)
+    def get_test_output(self):
+        test_output = []
+        original_input = self.original_sentence.split()
+        normalized_output = self.normalized_sentence.split()
+        org_ind = 0
+        norm_ind = 0
+        for ind, tok in enumerate(self.ling_structure.tokens):
+            current_verbalization = []
+            if len(tok.verbalization_arr) == 1 and not isinstance(tok.verbalization_arr[0], list):
+                if tok.token_type == TokenType.WORD:
+                    verbalization = tok.name
+                    if original_input[org_ind] != verbalization:
+                        print(original_input[org_ind] + ' ' + verbalization)
+                else:
+                    verbalization = tok.verbalization_arr[0]
+                if org_ind >= len(original_input):
+                    test_output.append('' + '\t' + verbalization)
+                else:
+                    test_output.append(original_input[org_ind] + '\t' + verbalization)
+                org_ind += 1
+                norm_ind += 1
+            elif isinstance(tok.verbalization_arr[0], list):
+                # multiword verbalization, possibly also multiple possibilities per word
+                if org_ind >= len(original_input):
+                    current_input_token = ''
+                else:
+                    current_input_token = original_input[org_ind] #180°C
+
+                for verbal_arr in tok.verbalization_arr:
+
+                    #verbal_arr = tok.verbalization_arr[0]
+                    tok_count = 0
+                    for arr in verbal_arr:
+                        #[eitt_abc, einn_def, ...]
+                        current_normalized = normalized_output[norm_ind]
+                        for wrd in arr:
+                            if '_' in wrd:
+                                wrd = wrd[:wrd.index('_')]
+                            if wrd == current_normalized:
+                                current_verbalization.append(wrd)
+                                norm_ind = norm_ind + 1
+                                tok_count += 1
+                                break
+
+                    if tok_count == len(verbal_arr):
+                        #already found a full match
+                        break
+                    else:
+                        # we might have followed a wrong path, start over
+                        current_verbalization = []
+
+                test_output.append(current_input_token + '\t' + ' '.join(current_verbalization))
+                org_ind += 1
+
+            else:
+                # one word but multiple possibilities in verbalization
+                if org_ind >= len(original_input):
+                    current_input_token = ''
+                else:
+                    current_input_token = original_input[org_ind]  # 180°C
+                current_normalized = normalized_output[norm_ind]  # eitt
+                for wrd in tok.verbalization_arr:
+                    if '_' in wrd:
+                        wrd = wrd[:wrd.index('_')]
+                    if wrd == current_normalized:
+                        current_verbalization.append(wrd)
+                        norm_ind = norm_ind + 1
+                        #current_normalized = normalized_output[norm_ind]
+                        break
+
+                test_output.append(current_input_token + '\t' + ' '.join(current_verbalization))
+                org_ind += 1
+               # norm_ind += 1
+
+        test_output.append('####\t####')
+        return '\n'.join(test_output)
+
+    #def to_jsonpickle(self, filename):
+    #    json_enc = jsonpickle.encode(self)
+    #    with open(filename, 'w') as f:
+    #        f.write(json_enc)
 
     def print_classified(self):
         print(self.classified)
@@ -87,7 +164,7 @@ class Token(object):
         self.wordid = ''
         self.pause_length = PauseLength.PAUSE_NONE
         self.phrase_break = False
-
+        self.verbalization_arr = []
         self.verbalization_failed = False
         self.start_index = 0
         self.end_index = 0
@@ -110,8 +187,8 @@ class Token(object):
         #else:
         #    self.name = name
 
-    def set_word(self, wrd):
-        self.word = wrd
+    def append_to_word(self, wrd):
+        self.word += wrd
 
     def set_wordid(self, wid):
         self.wordid = wid
@@ -121,6 +198,9 @@ class Token(object):
 
     def set_phrase_break(self, pb):
         self.phrase_break = pb
+
+    def set_verbalization_arr(self, v_arr):
+        self.verbalization_arr = v_arr
 
     def has_word(self):
         if self.word:
@@ -136,10 +216,10 @@ class Token(object):
         #self.name = value
         label = tuple[0]
         value = tuple[1]
-        self.set_name(value)
-        if label == 'name:':
-            self.name = value
-            self.word = self.name.lower()
+        # TODO: what are we going to do with this? what is name and what is word?
+        if self.valid_word(value):
+            self.set_name(value)
+            self.append_to_word(value)
 
         if label == 'pause_length:':
             if value == 'PAUSE_SHORT':
@@ -186,6 +266,12 @@ class Token(object):
         #elif sem_class_label:
          #   self.semiotic_class = self.get_semiotic_class(sem_class_label, tuple)
           #  self.token_type = TokenType.SEMIOTIC_CLASS
+
+    def valid_word(self, wrd):
+
+        if wrd in ['PAUSE_SHORT', 'PAUSE_MEDIUM', 'PAUSE_LONG', 'true', 'PUNCT']:
+            return False
+        return True
 
 
     """
