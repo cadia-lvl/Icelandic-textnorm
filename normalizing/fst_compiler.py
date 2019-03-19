@@ -49,10 +49,13 @@ class FST_Compiler:
         :return:
         """
         #input_fst = self._get_basic_word_fst(text_arr)
+        #text_arr = text.split()
         input_fst = self._get_basic_tag_fst(text_arr)
         pynini_fst = pn.Fst.from_pywrapfst(input_fst)
 
-        return pynini_fst, self.current_oov_queue
+        #return pynini_fst, self.current_oov_queue
+
+        return pynini_fst, self.replacement_dict
 
 
     def fst_stringcompile_token(self, token):
@@ -121,6 +124,8 @@ class FST_Compiler:
         compiler = fst.Compiler()
         state_counter = 0
         for c in text:
+            if len(c) == 0:
+                continue
             int_val = self._get_int_value(c, unknown_to_zero)
             from_state = state_counter
             to_state = state_counter + 1
@@ -179,7 +184,8 @@ class FST_Compiler:
     def _get_basic_tag_fst(self, text_arr):
         # create an fst from text_arr, extracting pos-tags where applicable
         # only use pos-tags where found, store the words for reconstruction of the utterance
-        self.current_oov_queue = queue.Queue()
+        #self.current_oov_queue = queue.Queue()
+        self.oov_dict = {}
         self.replacement_dict = {}
         compiler = fst.Compiler()
         state_counter = 0
@@ -202,7 +208,19 @@ class FST_Compiler:
                             d = self.replacement_dict[i]
                             d[w] = wrd
 
-                    int_val = self._get_int_value_word(w)
+                    #elif  w == 'og':
+                    #    #TODO: better solution ... tag in grammar
+                    #    wrd = 'og'
+                    #    w = 'c'
+                    #    if i in self.replacement_dict:
+                    #        d = self.replacement_dict[i]
+                    #        d[w] = wrd
+                    #    else:
+                    #        self.replacement_dict[i] = {}
+                    #        d = self.replacement_dict[i]
+                    #        d[w] = wrd
+
+                    int_val = self._get_int_value_word(w, i)
                     from_state = state_counter
                     if next_state != 0:
                         to_state = next_state
@@ -230,7 +248,7 @@ class FST_Compiler:
                             self.replacement_dict[i] = {}
                             d = self.replacement_dict[i]
                             d[w] = wrd
-                    int_val = self._get_int_value_word(w)
+                    int_val = self._get_int_value_word(w, i)
                     self._compile_entry(compiler, from_state, int_val, to_state)
                     state_counter += 1
 
@@ -249,24 +267,34 @@ class FST_Compiler:
             # character is unknown, not found in utf8_symbols
             if unknown_to_zero:
                 int_val = 0
-            elif ord(character) <= 32:
+            elif ord(character) <= 32 or (ord(character) > 126 and ord(character) < 161):
                 # For a space (' ') we extract the hex repr: 0x0020 with 2 trailing zeros.
-                # Captures non-printable chars as well, but we really don't handle them when verbalizing
-                # since we haven't 'met' them yet - fix that, if necessary
+                # Captures non-printable chars and other chars represented with their hex-value in the utf8 table,
+                # rather than their symbol. There are some more symbols in the table, above val 5000 - let's see if
+                # we need to include those as well.
                 conv = '0x%04x' % ord(character)
                 int_val = self.utf8_symbols.find(conv)
             else:
                 # TODO: logging, error handling, here? Propagate the -1 value?
+                #print(str(len(character)))
+                #print(str(ord(character)))
                 print('No int value found for ' + character)
 
         return int_val
 
-    def _get_int_value_word(self, word):
+    def _get_int_value_word(self, word, ind):
 
         int_val = self.word_symbols.find(word)
         if int_val == -1:
             int_val = self.word_symbols.find(self.UNK)
-            self.current_oov_queue.put(word)
+            #self.current_oov_queue.put(word)
+            if ind in self.replacement_dict:
+                d = self.replacement_dict[ind]
+                d[self.UNK] = word
+            else:
+                self.replacement_dict[ind] = {}
+                d = self.replacement_dict[ind]
+                d[self.UNK] = word
 
         return int_val
 
