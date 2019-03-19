@@ -42,6 +42,11 @@ def make_ngram_lm(corpus, word_syms=None, order=3):
     subprocess.call(cmd, shell=True)
     cmd = "ngrammake {}.cnt > {}.mod".format(corpus_basename, corpus_basename)
     subprocess.call(cmd, shell=True)
+    #ADD PRUNING:
+    #cmd = "ngramshrink --method=relative_entropy --theta=1.0e-7 {}.mod > {}_re_pruned.mod".format(corpus_basename, corpus_basename)
+    #cmd = "ngramshrink --count_pattern=2+:1 {}.mod > {}_count_pruned.mod".format(corpus_basename,
+    #                                                                                              corpus_basename)
+    #subprocess.call(cmd, shell=True)
     cmd = "fstprint {}.mod | perl s2eps.pl > {}_s2eps.txt".format(corpus_basename, corpus_basename)
     subprocess.call(cmd, shell=True)
     cmd = "fstcompile --isymbols={} --osymbols={} {}_s2eps.txt > {}.fst".format(word_syms, word_syms, corpus_basename, corpus_basename)
