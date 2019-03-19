@@ -48,6 +48,9 @@ class Verbalizer:
         """
 
         tokens = utt.ling_structure.tokens
+        if not tokens:
+            print('No tokens for ' + utt.original_sentence)
+            return
         verbalization = Verbalized()
         needs_disambiguation = False
 
@@ -60,10 +63,15 @@ class Verbalizer:
 
             elif tok.token_type == TokenType.PUNCT:
                 #words = [self.SIL]
-                words = [tok.word]
+                if len(tok.word) > 0:
+                    #don't want to keep ',_,' in tagged mode, only ','
+                    words = [tok.word[0]]
+                else:
+                    words = [tok.word]
             else:
                 words = [tok.word]
 
+            tok.set_verbalization_arr(words)
             verbalization.extend_paths(words)
 
         if needs_disambiguation or verbalization.max_depth > 1:
@@ -116,6 +124,8 @@ class Verbalizer:
             result_arr.append([elem])
         # compare all other lists to the baseline, add words if different, do nothing if equal
         # (the lists have previously been tested for equal length)
+        # TODO: for long patterns like 1992-1997 unrelated verbalizations can have the same length,
+        # causing this method to deliver messed up results!
         for i in range(1, len(verb_arr)):
             elem_arr = verb_arr[i]
             for j in range(len(elem_arr)):
@@ -125,6 +135,28 @@ class Verbalizer:
                     result_arr[j].append(elem_arr[j])
 
         return result_arr
+
+    @staticmethod
+    def adjust_pos_for_one(wrd, pos):
+        if wrd in ['einn', 'einum', 'eins', 'ein', 'eina', 'einni', 'einnar', 'eitt', 'einu']:
+            pos = pos[:3] + 'f' + pos[-1]
+        return pos
+
+    def valid_pos_pattern(self, verbalization):
+        if not '_' in verbalization:
+            return True
+
+        tokens = verbalization.split()
+        pos_set = set()
+        for tok in tokens:
+            if '_' in tok:
+                wrd, pos = tok.split('_')
+                pos = self.adjust_pos_for_one(wrd, pos)
+                pos_set.add(pos)
+                if len(pos_set) > 1:
+                    return False
+
+        return len(pos_set) == 1
 
     #
     #  PRIVATE METHODS
@@ -151,6 +183,20 @@ class Verbalizer:
     def _verbalize_token(self, token):
 
         verbalized_fst = self._create_verbalized_fst(token)
+        ###############################
+        # Baseline: no language model:
+        #verbalized_no_lm = pn.shortestpath(verbalized_fst).optimize()
+        #try:
+        #    verbalized = verbalized_no_lm.stringify(token_type=self.utf8_symbols)
+        #    verbal = verbalized.replace(' ', '')
+        #    verbal = verbal.replace('0x0020', ' ')
+        #    splitted_arr = [verbal]
+        #    return splitted_arr
+        #except Exception:
+        #    splitted_arr = [token.word]
+        #    return splitted_arr
+        #
+        ################################
         fst_size = verbalized_fst.num_states()
         splitted_arr = []
         if fst_size == 0:
@@ -166,9 +212,10 @@ class Verbalizer:
             for elem in p:
                 verbal = elem.replace(' ', '')
                 verbal = verbal.replace('0x0020', ' ')
-                verbalized_arr.append(verbal)
-            #trans_graph = graphs.TransitionGraph(self.utf8_symbols)
-            #verbalized_arr = trans_graph.extract_verbalization(verbalized_fst)
+                #for mixed modus: ensure every number has the same pos, in a multi number token
+                # 24. : tuttugustu_lvfnvf og fjórðu_lvfnvf and not: tuttugustu_lvfþvf og fjórðu_lvfnvf
+                if self.valid_pos_pattern(verbal):
+                    verbalized_arr.append(verbal)
             splitted_arr = self._split_verbalized_arr(verbalized_arr)
 
         return splitted_arr
@@ -177,15 +224,15 @@ class Verbalizer:
     def _create_verbalized_fst(self, token):
 
         token_fst = self.compiler.fst_stringcompile_token(token)
-        token_fst.draw('token.dot')
+        #token_fst.draw('token.dot')
         #self.thrax_grammar.draw('formatted_digits_grammar.dot')
         verbalized_fst = pn.compose(token_fst, self.thrax_grammar)
         fst_size = verbalized_fst.num_states()
-        verbalized_fst.draw('verbalized.dot')
+        #verbalized_fst.draw('verbalized.dot')
         verbalized_fst.optimize()
         verbalized_fst.project(True)
         verbalized_fst.rmepsilon()
-        verbalized_fst.draw('verbalized_final.dot')
+        #verbalized_fst.draw('verbalized_final.dot')
 
         return verbalized_fst
 
@@ -216,10 +263,16 @@ class Verbalizer:
         result_arr = []
         for k in verbalization_dict.keys():
             if k == 1:
-                # TODO: sure about that?
-                return verbalization_dict[k]
-            inner_result_arr = self._construct_splitted_arr(verbalization_dict[k])
-            result_arr.append(inner_result_arr)
+                # TODO: sure about that? nope ...
+                #return verbalization_dict[k]
+                #result_arr.append(verbalization_dict[k])
+                inner_arr = []
+                for v in verbalization_dict[k]:
+                    inner_arr.append(v[0])
+                result_arr.append([inner_arr])
+            else:
+                inner_result_arr = self._construct_splitted_arr(verbalization_dict[k])
+                result_arr.append(inner_result_arr)
 
         return result_arr
 
@@ -297,14 +350,16 @@ class Verbalizer:
             replacement_dicts[normalized_text] = copy.deepcopy(self.replacement_dict)
 
         best_normalized = self._lowest_cost(normalized)
+        #print("Best normalized: " + best_normalized)
+        if best_normalized in replacement_dicts:
+            best_normalized = self._insert_original_words(best_normalized, replacement_dicts[best_normalized])
 
         if self.oov_queue:
             #TODO: is this sufficient for multiple verbalizations?
-            best_normalized = self._insert_original_oov(best_normalized)
+            best_normalized = self._insert_original_oov(best_normalized, self.oov_queue)
             self.oov_queue = None
 
-        if best_normalized in replacement_dicts:
-            best_normalized = self._insert_original_words(best_normalized, replacement_dicts[best_normalized])
+
 
         return best_normalized
 
@@ -335,21 +390,38 @@ class Verbalizer:
 
     def _language_model_scoring(self, verbal_arr):
 
-        word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(verbal_arr)
-        self.replacement_dict = self.compiler.replacement_dict
+        #word_fst, self.oov_queue = self.compiler.fst_stringcompile_words(verbal_arr)
+        word_fst, self.replacement_dict = self.compiler.fst_stringcompile_words(verbal_arr)
+        #self.replacement_dict = self.compiler.replacement_dict
         word_fst.set_output_symbols(self.word_symbols)
         word_fst.optimize()
         word_fst.project(True)
         word_fst.arcsort()
+        #word_fst.draw('word_fst.dot')
         lm_intersect = pn.intersect(word_fst, self.lm)
         lm_intersect.optimize()
-        lm_intersect.draw('lm_intersect.dot')
+        #lm_intersect.draw('lm_intersect.dot')
         shortest_path = pn.shortestpath(lm_intersect).optimize()
         return shortest_path
 
 
-    def _insert_original_oov(self, text):
+    def _insert_original_oov(self, text, oov_dict):
         text_arr = text.split()
+        for ind, wrd in enumerate(text_arr):
+            if wrd != self.UNK:
+                continue
+            # if self._is_tag(wrd): need this?
+            # if ind not in repl_dict:
+            #    print("No replacement for " + wrd)
+            # else:
+            #    tag_map = repl_dict[ind]
+            #    text_arr[ind] = tag_map[wrd]
+            if ind in oov_dict:
+                tag_map = oov_dict[ind]
+                text_arr[ind] = tag_map[wrd]
+
+        return ' '.join(text_arr)
+        """
         for ind, wrd in enumerate(text_arr):
             if wrd == self.UNK:
                 if self.oov_queue.empty():
@@ -357,15 +429,22 @@ class Verbalizer:
                 else:
                     text_arr[ind] = self.oov_queue.get(False)
         return ' '.join(text_arr)
+        """
 
     def _insert_original_words(self, text, repl_dict):
         text_arr = text.split()
         for ind, wrd in enumerate(text_arr):
-            if self._is_tag(wrd):
-                if ind not in repl_dict:
-                    print("No replacement for " + wrd)
-                else:
-                    tag_map = repl_dict[ind]
+            #if wrd == self.UNK:
+            #    continue
+            #if self._is_tag(wrd): need this?
+            #if ind not in repl_dict:
+            #    print("No replacement for " + wrd)
+            #else:
+            #    tag_map = repl_dict[ind]
+            #    text_arr[ind] = tag_map[wrd]
+            if ind in repl_dict:
+                tag_map = repl_dict[ind]
+                if wrd in tag_map:
                     text_arr[ind] = tag_map[wrd]
 
         return ' '.join(text_arr)
@@ -375,9 +454,15 @@ class Verbalizer:
         if re.match('l[kvh][ef][noþe]vf', wrd):
             return True
 
+        # is reduced adjective tag
+        elif re.match('[kvh].*vf', wrd):
+            print('found tag: ' + wrd)
+            return True
+
         #is numeral tag
         elif re.match('tf[kvh][ef][noþe]', wrd):
             return True
+
 
         return False
 
