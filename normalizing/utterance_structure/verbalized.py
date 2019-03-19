@@ -41,8 +41,10 @@ class Verbalized:
             if self.paths:
                 for p in self.paths:
                     p.append(token_verbalizations)
+                    #p.append(' '.join(token_verbalizations))
             else:
                 self.paths.append([token_verbalizations])
+                #self.paths.append([' '.join(token_verbalizations)])
 
         elif list_depth == 3:
             # need to copy existing paths, once for each 2nd level list in token_verbalization
@@ -56,7 +58,7 @@ class Verbalized:
     #
 
     def _update_paths(self, token_verbalizations):
-
+        self.paths.sort()
         for elem in token_verbalizations:
             if self.paths:
                 for p in self.paths:
@@ -71,13 +73,16 @@ class Verbalized:
                     self.paths.append(token_verbalizations)
 
     def _update_deep_paths(self, token_verbalizations):
-
+        self.paths.sort()
         for i, elem in enumerate(token_verbalizations):
-            for e in elem:
-                if self.paths:
-                    self.paths[i].append(e)
-                else:
-                    self.paths.append([e])
+            if self.paths:
+                for j in range(i, len(self.paths), len(token_verbalizations)):
+                    for e in elem:
+                #if self.paths:
+                        self.paths[j].append(e)
+            else:
+                self.paths.append([e])
+
 
     def _create_new_paths(self, new_paths_count):
         """
@@ -86,10 +91,15 @@ class Verbalized:
         :return:
         """
         tmp_paths = self.paths.copy()
-        for p in tmp_paths:
-            for i in range(new_paths_count-1):
-                new_path = p.copy()
-                self.paths.append(new_path.copy())
+        if tmp_paths:
+            for p in tmp_paths:
+                for i in range(new_paths_count-1):
+                    new_path = p.copy()
+                    self.paths.append(new_path.copy())
+        else:
+            for i in range(new_paths_count):
+                self.paths.append([])
+
 
     def _depth(self, verbal_arr):
         # TODO: util?
