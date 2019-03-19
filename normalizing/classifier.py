@@ -7,6 +7,7 @@ Classify an utterance according to a Thrax classifying grammar
 
 """
 import pynini as pn
+import pywrapfst
 from fst_compiler import FST_Compiler
 
 
@@ -35,7 +36,7 @@ class Classifier:
 
         classified_fst = self._create_classified_fst(text)
         classified_string = self._create_classified_string(classified_fst).replace('<epsilon>', '')
-
+        print(classified_string)
         return classified_fst, classified_string
 
 
@@ -44,20 +45,23 @@ class Classifier:
         compiler = FST_Compiler(self.utf8_symbols, None)
         inp_fst = compiler.fst_stringcompile(text)
         all_fst = pn.compose(inp_fst, self.thrax_grammar)
-        all_fst.draw('all_class.dot')
+        #all_fst.draw('all_class.dot')
         shortest_path = pn.shortestpath(all_fst).optimize()
-        shortest_path.draw('shortes_class.dot')
+        #shortest_path.draw('shortes_class.dot')
         shortest_path.rmepsilon()
 
         return shortest_path
 
     def _create_classified_string(self, classified_fst):
-
-        classified = classified_fst.stringify(token_type=self.utf8_symbols)
-        # the classified results are character based, combine the chars to words again
-        classified = classified.replace(' ', '')
-        # the real word separators are encoded with unicode representation of SPACE, replace that with ' '
-        classified = classified.replace(self.SPACE, ' ')
+        try:
+            classified = classified_fst.stringify(token_type=self.utf8_symbols)
+            # the classified results are character based, combine the chars to words again
+            classified = classified.replace(' ', '')
+            # the real word separators are encoded with unicode representation of SPACE, replace that with ' '
+            classified = classified.replace(self.SPACE, ' ')
+        except pywrapfst.FstArgError:
+            print("Error in classifiedFST")
+            return ''
 
         return classified
 
