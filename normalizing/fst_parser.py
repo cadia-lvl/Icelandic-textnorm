@@ -109,7 +109,7 @@ class FSTParser:
             if label in SUBSTRUCTURE:
                 self._next_state()
                 self._parse_fst(tok, sem_class_label=label)
-            elif label:
+            elif len(label) > 1:
                 value = self._parse_field_value()
                 tok.set_value((label, value), sem_class_label)
 
