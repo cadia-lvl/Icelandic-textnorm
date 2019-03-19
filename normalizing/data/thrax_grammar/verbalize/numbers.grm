@@ -10,6 +10,7 @@ delzero = "0".utf8 : "".utf8;
 insand = "".utf8 : " og ".utf8;
 
 cardinal_simple = StringFile['cardinals.tsv', 'utf8', 'utf8'];
+cardinal_2to9 = StringFile['cardinals2to9.tsv', 'utf8', 'utf8'];
 cardinal_m = StringFile['cardinal_mask.tsv', 'utf8', 'utf8'];
 export neutral_units2to9 = Optimize[StringFile['neutral_units2to9.txt', 'utf8', 'utf8']];
 teens = StringFile['teens.tsv', 'utf8', 'utf8'];
@@ -32,7 +33,8 @@ export numbers_20_to_99 = (decades util.Delete["0".utf8]) |
 export numbers_20_to_99_neutr = (decades util.Delete["0".utf8]) |
   (decades util.Insert[" og ".utf8] neutral_units);
 
-hundreds = (one_neutr util.Insert[" hundrað".utf8]) | (cardinal_simple util.Insert[" hundruð".utf8]);
+#hundreds = (one_neutr util.Insert[" hundrað".utf8]) | (cardinal_simple util.Insert[" hundruð".utf8]);
+hundreds = (util.Delete["1".utf8] util.Insert[" hundrað".utf8]) | (cardinal_2to9 util.Insert[" hundruð".utf8]);
 
 # correct: only 'eitt hundrað' allowed, not 'einn/ein hundrað'
 cardinal_hundreds = Optimize[
