@@ -461,7 +461,9 @@ class Percent(SemioticClass):
 
     def set_attribute(self, attr_value, label=''):
         super().set_attribute(attr_value)
-        if label in self.VALID_LABELS:
+        if label in self.VALID_LABELS and self.num_value:
+            self.num_value.set_attribute(attr_value)
+        elif label in self.VALID_LABELS:
             sem_class = SemioticClasses(label).semiotic_class
             self.set_num_value(sem_class)
             self.num_value.set_attribute(attr_value)
