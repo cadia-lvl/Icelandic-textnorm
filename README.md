@@ -1,4 +1,4 @@
-# Haukur - Text normalization for Icelandic
+# Textahaukur - Text normalization for Icelandic
 
 THIS REPOSITORY IS STILL IN DEVELOPMENT, NOT YET A FUNCTIONAL TOOL!
 --------------------------------------------------------------------
