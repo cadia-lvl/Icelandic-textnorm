@@ -50,11 +50,11 @@ class TestSemClasses(unittest.TestCase):
         CONN = 'connector:'
         card1 = ('integer:', 5)
         card2 = ('integer:', 10)
-        conn = ('connector:', '-')
+        conn = ('sym:', '-')
         sem.set_attribute(card1, label='cardinal')
         sem.set_attribute(card2, label='cardinal')
         sem.set_attribute(conn)
-        self.assertEqual('connector|cardinal|integer: 5 | connector: - | cardinal|integer: 10 |', sem.serialize_to_string())
+        self.assertEqual('connector|cardinal|integer: 5 | conn|sym: - | cardinal|integer: 10 |', sem.serialize_to_string())
 
         tup1 = ('day:', '8')
         tup2 = ('month:', '12')
@@ -68,14 +68,14 @@ class TestSemClasses(unittest.TestCase):
         sem.set_attribute(tup4, label='date')
         sem.set_attribute(tup2, label='date')
         sem.set_attribute(tup3, label='date')
-        self.assertEqual('connector|date|day: 8 | month: 12 | year: 2010 | connector: - | date|day: 18 | month: 12 | year: 2010 |',
+        self.assertEqual('connector|date|day: 8 | month: 12 | year: 2010 | conn|sym: - | date|day: 18 | month: 12 | year: 2010 |',
                          sem.serialize_to_string())
 
     def test_connector_fails(self):
         tup1 = ('day:', '8')
         tup2 = ('month:', '12')
         tup3 = ('year:', '2010')
-        conn = ('connector:', '-')
+        conn = ('sym:', '-')
         sem = SemioticClasses('connector').semiotic_class
         sem.set_attribute(tup1, label='date')
         sem.set_attribute(tup2, label='date')
@@ -107,4 +107,4 @@ class TestSemClasses(unittest.TestCase):
         sem.set_attribute(tup1, label='decimal')
         sem.set_attribute(tup2, label='decimal')
         sem.set_attribute(sym)
-        self.assertEqual('percent|decimal|integer_part: 5 | fractional_part: 7 | symbol: % |', sem.serialize_to_string())
+        self.assertEqual('percent|decimal|integer_part: 5 | fractional_part: 7 | per|symbol: % |', sem.serialize_to_string())

@@ -1,0 +1,77 @@
+############################################
+#  	Textahaukur
+#
+#	Classifier test set
+#	v. 0.1 31.03.2019
+#
+############################################
+
+# cardinals
+þessi 2 börn	tokens { name: "þessi" } tokens { cardinal { integer: "2" } } tokens { name: "börn" }
+101	tokens { cardinal { integer: "101" } }
+
+# ordinals
+63. kom	tokens { ordinal { integer: "63" } } tokens { name: "kom" }
+101. kom	tokens { ordinal { integer: "101" } } tokens { name: "kom" }
+
+# decimals
+10,5	tokens { decimal { integer_part: "10" fractional_part: "5" } }
+72,38	tokens { decimal { integer_part: "72" fractional_part: "38" } }
+38,0	tokens { decimal { integer_part: "38" fractional_part: "0" } }
+5,351	tokens { decimal { integer_part: "5" fractional_part: "351" } }
+2,06	tokens { decimal { integer_part: "2" fractional_part: "06" } }
+
+# times
+11:20	tokens { time { hours: 11 minutes: 20 } }
+15:58	tokens { time { hours: 15 minutes: 58 } }
+03:00	tokens { time { hours: 03 minutes: 00 } }
+01:00	tokens { time { hours: 01 minutes: 00 } }
+2:39	tokens { time { hours: 2 minutes: 39 } }
+
+# dates
+06.05. kom	tokens { date { day: "06" month: "05" } } tokens { name: "kom" }
+10.08. kom	tokens { date { day: "10" month: "08" } } tokens { name: "kom" }
+16.7. kom	tokens { date { day: "16" month: "7" } } tokens { name: "kom" }
+23.12. kom	tokens { date { day: "23" month: "12" } } tokens { name: "kom" }
+43.52. kom	tokens { nsw: "43.52." } tokens { name: "kom" }
+
+# thousand dot
+8.400	tokens { cardinal { integer: "8400" } }
+34.700	tokens { cardinal { integer: "34700" } }
+4.189.000	tokens { cardinal { integer: "4189000" } }
+178.985.000	tokens { cardinal { integer: "178985000" } }
+
+# time sports
+3:27:40	tokens { time_sports { hours: "3" minutes: "27" seconds: "40" } }
+33:06	tokens { time_sports { minutes: "33" seconds: "06" } }
+
+# sports result
+9:0	tokens { sports_results { home: "9" guests: "0" } }
+81:66	tokens { sports_results { home: "81" guests: "66" } }
+
+# connectors
+2018-2022	tokens { connector { cardinal { integer: "2018" } { connector: "-" } cardinal { integer: "2022" } } }
+1.500-2.000	tokens { connector { cardinal { integer: "1500" } { connector: "-" } cardinal { integer: "2000" } } }
+7.-9. des	tokens { connector { ordinal { integer: "7" } { connector: "-" } ordinal { integer: "9" } } } tokens { name: "des" }
+
+# symbols
+-0,6	tokens { negative { symbol: "-" decimal { integer_part: "0" fractional_part: "6" } } }
+200°	tokens { degrees { cardinal { integer: "200" } symbol: "°" } }
+7%	tokens { percent { cardinal { integer: "7" } symbol: "%" } }
+6,5%	tokens { percent { decimal { integer_part: "6" fractional_part: "5" } symbol: "%" } }
+
+# non-pron symbols
+569-1122	tokens { telephone { head: "569" tail: "1122" } }
+0513-14-406615	tokens { bank_account { cardinal { integer: "0513" } cardinal { integer: "14" } cardinal { integer: "406615" } } }
+17-18-22-26-33-34	tokens { number_row { cardinal { integer: "17" } cardinal { integer: "18" } cardinal { integer: "22" } cardinal { integer: "26" } cardinal { integer: "33" } cardinal { integer: "34" } } }
+120835-3519	tokens { personal_id { cardinal { integer: "12" } cardinal { integer: "08" } cardinal { integer: "35" } cardinal { integer: "35" } cardinal { integer: "19" } } }
+
+# Acronyms
+DVD-diska	tokens { acronym { head: "DVD" tail: "diska" } }
+RNA-veirur	tokens { acronym { head: "RNA" tail: "veirur" } }
+RNA	tokens { acronym { head: "RNA" } }
+
+# Abbreviations
+#TODO tokenizer will have to catch dots after abbreviations if we want to make sure they don't get cut off
+kl. 4	tokens { abbreviation { abbr: "kl" } } tokens { name: "." pause_length: PAUSE_LONG phrase_break: true type: PUNCT } tokens { cardinal { integer: "4" } }
+s.s. ertingu í öndunarfærum tokens { abbreviation { abbr: "s.s." } } tokens { name: "ertingu" } tokens { name: "í" } tokens { name: "öndunarfærum" }

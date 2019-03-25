@@ -1,0 +1,133 @@
+############################################
+#  	Textahaukur
+#
+#	Normalizer test set
+#	v. 0.1 31.03.2019
+#
+############################################
+
+# cardinals, basic
+þessi 2 börn	þessi tvö börn
+þessar 2 konur	þessar tvær konur
+þessir 2 menn	þessir tveir menn
+þessi 3 börn	þessi þrjú börn
+þessar 3 konur	þessar þrjár konur
+þessir 3 menn	þessir þrír menn
+þessi 4 börn	þessi fjögur börn
+þessar 4 konur	þessar fjórar konur
+þessir 4 menn	þessir fjórir menn
+
+# cardinals
+
+1.775	sautján hundruð sjötíu og fimm
+2100	tvö þúsund og eitt hundrað
+100 milljón króna	eitt hundrað milljón króna
+5000 pund	fimm þúsund pund
+bjóða 1200 börnum	bjóða tólf hundruð börnum
+um 20000 stuðningsmenn	um tuttugu þúsund stuðningsmenn
+að 54 börn	að fimmtíu og fjögur börn
+núna í 18777 börnum	núna í átján þúsund sjö hundruð sjötíu og sjö börnum
+núna í 18770 börnum	núna í átján þúsund sjö hundruð og sjötíu börnum
+18700 börn	átján þúsund og sjö hundruð börn
+2 milljarða	tvo milljarða
+fékk síðan 902 milljarða	fékk síðan níu hundruð og tvo milljarða
+spilaði samtals 199 leiki	spilaði samtals eitt hundrað níutíu og níu leiki
+sem er 21 prósent nýting	sem er tuttugu og eitt prósent nýting
+með að skora 21 stig	með að skora tuttugu og eitt stig
+21 kona	tuttugu og ein kona
+eftir 21 leik	eftir tuttugu og einn leik
+sem er 21 árs	sem er tuttugu og eins árs
+er 4 ára gamall	er fjögurra ára gamall
+er 54 ára gamall	er fimmtíu og fjögurra ára gamall
+næstum því 54 milljónir	næstum því fimmtíu og fjórar milljónir
+tæplega 54 prósent atkvæða	tæplega fimmtíu og fjögur prósent atkvæða
+spilaði 54 leiki	spilaði fimmtíu og fjóra leiki
+
+# ordinals
+í 3. umferð	í þriðju umferð
+í 3. leikhluta	í þriðja leikhluta
+3. hver bíll	þriðji hver bíll
+í 23. umferð	í tuttugustu og þriðju umferð
+í 23. leikhluta	í tuttugasta og þriðja leikhluta
+23. hver bíll	tuttugasti og þriðji hver bíll
+15. janúar	fimmtándi janúar
+2. febrúar	öðrum febrúar
+3. mars	þriðja mars
+4. apríl	fjórða apríl
+117. mínúta	hundraðasta og sautjánda mínúta
+
+# date
+taka gildi 1. janúar 2002	taka gildi fyrsta janúar tvö þúsund og tvö
+taka gildi 1. janúar 1900	taka gildi fyrsta janúar nítján hundruð
+taka gildi 1. janúar 1905	taka gildi fyrsta janúar nítján hundruð og fimm
+taka gildi 1. janúar 1910	taka gildi fyrsta janúar nítján hundruð og tíu
+taka gildi 1. janúar 1920	taka gildi fyrsta janúar nítján hundruð og tuttugu
+taka gildi 1. janúar 1925	taka gildi fyrsta janúar nítján hundruð tuttugu og fimm
+taka gildi 1. janúar 2000	taka gildi fyrsta janúar tvö þúsund
+taka gildi 1. janúar 2002	taka gildi fyrsta janúar tvö þúsund og tvö
+taka gildi 1. janúar 2020	taka gildi fyrsta janúar tvö þúsund og tíu
+taka gildi 1. janúar 2044	taka gildi fyrsta janúar tvö þúsund fjörutíu og fjögur
+
+# day-month
+taka gildi 1.1. í ár	taka gildi fyrsta janúar í ár
+taka gildi 05.05. í ár	taka gildi fimmta maí í ár
+í dag er 24.12., jólin	í dag er tuttugasti og fjórði desember , jólin
+
+# decimals
+10,5	tíu komma fimm
+72,38	sjötíu og tvær komma þrjátíu og átta
+38,0	þrjátíu og átta komma núll
+5,351	fimm komma þrír fimm einn
+2,06	tveir komma núll sex
+
+# time
+#11:20 15:58 03:00 2:39 10:00 01:00 (klukkan) 17.30 (klukkan) 2.30 11.00 9:04 16:04
+        
+11:20	ellefu tuttugu
+15.58	fimmtán fimmtíu og átta' ))
+03:03	þrjú núll þrjú
+01:00	eitt
+2:39	tvö þrjátíu og níu
+
+# connector
+2018-2022	tvö þúsund og átján til tvö þúsund tuttugu og tvö
+500-1000	fimm hundruð til eitt þúsund
+
+# Acronyms
+DVD-diska	D V D diska
+RNA-veirur	R N A veirur
+RNA	R N A
+R	R
+
+# Abbreviations
+
+kl 4	klukkan fjögur
+20 ml	tuttugu millilítrar
+t.d. rvk	til dæmis Reykjavík
+
+# symbols
+-0,6	mínus núll komma sex
+200°	tvö hundruð gráður
+7%	sjö prósent
+6,5%	sex komma fimm prósent
+76,5%	sjötíu og sex komma fimm prósent
+
+# formatted digits
+        
+569-1122	fimm sex níu einn einn tveir tveir
+0513-14-406615	núll fimm einn þrír fjórtán fjórir núll sex sex einn fimm
+120835-3519	tólf núll átta þrjátíu og fimm þrjátíu og fimm nítján
+17-18-22-33	sautján átján tuttugu og tveir þrjátíu og þrír
+
+# unk
+        
+að 54 aðildarsambönd	að fimmtíu og fjögur aðildarsambönd
+
+# nsw
+nonStandardWord	nonStandardWord_nsw
+nons3ns*Tok	nons3ns*Tok_nsw
+vefbókasafn.is	vefbókasafn.is_nsw
+
+# sil
+í hrinu:', 'í hrinu <sil>
+
