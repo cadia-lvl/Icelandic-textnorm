@@ -16,13 +16,19 @@ class TestNormalizer(unittest.TestCase):
         for tuple in test_tuples:
             normalized = norm.normalize(tuple[0])
             print(normalized)
-            self.assertEqual(tuple[1], normalized)
+            self.assertTrue(normalized in tuple[1])
 
     def init_test_tuples(self, test_data):
         test_tuples = []
         for line in test_data.read().splitlines():
             if line.startswith('#') or line == '':
                 continue
-            test_tuples.append(tuple(line.split('\t')))
+            test_arr = line.split('\t')
+            if len(test_arr) != 2:
+                print(line + ' does not have the correct format!')
+
+            test_tuples.append((test_arr[0], test_arr[1].split('|')))
+
+        test_data.close()
 
         return test_tuples
