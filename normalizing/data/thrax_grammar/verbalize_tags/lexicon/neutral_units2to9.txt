@@ -1,0 +1,16 @@
+2	tvö_tfhfn
+2	tvö_tfhfo
+3	þrjú_tfhfn
+3	þrjú_tfhfo
+4	fjögur_tfhfn
+4	fjögur_tfhfo
+5	fimm_tfhfn
+5	fimm_tfhfo
+6	sex_tfhfn
+6	sex_tfhfo
+7	sjö_tfhfn
+7	sjö_tfhfo
+8	átta_tfhfn
+8	átta_tfhfo
+9	níu_tfhfn
+9	níu_tfhfo

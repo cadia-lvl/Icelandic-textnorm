@@ -1,0 +1,41 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as n;
+
+q = util.quote;
+
+# Used to allow for different numbers of spaces coming out of the serializer.
+s = util.s;
+
+d = utf.digits;
+
+neutral_time_units = n.neutral_units | n.teensplus | n.numbers_20_to_99_neutr;
+
+hour = (util.Delete["0"]? d | (d - "0") d) @ neutral_time_units;  
+
+# Various renditions of minutes:
+#
+# 03 -> núll þrjú
+# 13 -> þrettán
+# 00 -> ''
+#
+
+
+minute = 
+  ( (("0" : "") ("0" : ""))  
+   | (("0" : "núll ".utf8) (d @ neutral_time_units))
+   | (d d) @ neutral_time_units );
+
+# Removes the markup (allowing for various spacing possibilities in the
+# serialization) and verbalizes the remainder.
+time =
+  util.Delete["time|"]
+  util.Delete[s "hours:" s]
+  hour
+  util.Delete[s "|" s "minutes:" s]
+  util.Insert[" "]
+  minute
+  util.Delete[s "|"]
+;
+
+export TIME = Optimize[time];

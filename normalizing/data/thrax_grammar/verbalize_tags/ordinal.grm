@@ -1,0 +1,65 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as num;
+
+insspace = "".utf8 : " ".utf8;
+delzero = "0".utf8 : "".utf8;
+delone  = "1".utf8 : "".utf8;
+insand = "".utf8 : " og ".utf8;
+
+units = Optimize[StringFile['lexicon/ordinals_simple.txt', 'utf8', 'utf8']];
+teens = Optimize[StringFile['lexicon/ordinals_teens_simple.tsv', 'utf8', 'utf8']];
+decades = Optimize[StringFile['lexicon/ordinals_decades_lexicon.txt', 'utf8', 'utf8']];
+
+#ordinals_20_99 = decades util.Delete["0".utf8] util.Delete[".".utf8] | (decades #util.Insert[" og "] units);
+
+ordinals_20_to_99 = decades util.Delete["0".utf8] | (decades util.Insert[" og "] units);
+
+#hundreds1 = num.cardinal_simple_all util.Insert[" hundraðasti".utf8];
+
+hundreds1 = ((((("eitt".utf8 <2.0>) insspace) | delone)
+  ("".utf8 : ("hundraðasta".utf8 | "hundraðasti".utf8)))
+  | (num.neutral_units2to9 insspace
+  ("".utf8 : ("hundraðasti".utf8 | "hundraðasta".utf8 | "hundruðustu".utf8))));
+
+
+#hundreds2 = num.cardinal_simple_all util.Insert[" hundruð".utf8];
+
+hundreds2 = ((((("eitt".utf8 <2.0>) insspace) | delone)
+  ("".utf8 : "hundrað".utf8))
+  | (num.neutral_units2to9 insspace
+  ("".utf8 : "hundruð".utf8)));
+
+
+#ordinals_100_999 = Optimize[hundreds1 util.Delete["00."] |
+#  (hundreds2 util.Delete["0"] util.Insert[" og "] units) |
+#  (hundreds2 util.Insert[" og "] teens) |
+#  (hundreds2 util.Insert[" "] ordinals_20_99)]
+#;
+
+ordinals_100_to_999 = Optimize[
+  hundreds1 delzero delzero |
+  (hundreds1 delzero insand units <-1>) |
+  (hundreds1 insand teens <-2>) |
+  (hundreds2 (insspace | insand) ordinals_20_to_99 <-10>)]
+;
+
+export ORDINAL = Optimize[
+  (units <-0.5>) |
+  (teens <-1>) |
+  (ordinals_20_to_99 <-2>) |
+  (ordinals_100_to_999 <-10>)]
+;
+
+#Later: check weights in Ingas grammar
+#export ORDINAL = Optimize[units | teens | ordinals_20_99 | ordinals_100_999];
+
+s = utf.space;
+
+ordinal_markup =
+  util.Delete["ordinal|integer:"]
+  ORDINAL
+  util.Delete[s* "|"]
+;
+
+export ORDINAL_MARKUP = Optimize[ordinal_markup];

@@ -1,0 +1,27 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+
+########################################################
+#
+# Cardinal: 
+#
+# Maps input like '34' '9781034' '52.346.122' into:
+# 
+# cardinal { integer: "52346122" }
+#
+#
+########################################################
+
+d = utf.digits;
+q = util.quote;
+
+cardinal =
+  util.Insert["cardinal { "]
+  util.Insert["integer: " q]
+  (d+ | d{1,3} (util.Delete[".".utf8] d{3})+)
+  util.Insert[q]
+  util.Insert[" }"]
+;
+
+export CARDINAL = Optimize[cardinal];

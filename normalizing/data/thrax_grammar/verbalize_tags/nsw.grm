@@ -1,0 +1,19 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+q = util.quote;
+s = util.s;
+
+anything = utf.whole_alphabet+;
+
+nsw =
+  util.Delete["nsw|"]
+  util.Delete[s "nsw:" s]
+  anything
+  util.Insert["#nsw"]
+  util.Delete[s "|"]
+;
+
+export NSW = Optimize[nsw];
+
+#util.Insert["_nsw"] decide later on how to label NSW, this interferes with the pos-tag labeling. (after 'anything' above)

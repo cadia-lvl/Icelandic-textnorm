@@ -1,0 +1,29 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+
+########################################################
+#
+# Abbreviations: 
+#
+# Maps input like 't.d.' 'kl' 'f.' into:
+#
+# abbreviation { abbr: "t.d." }
+#
+########################################################
+
+q = util.quote;
+lower = utf.alphabet;
+dot = ".".utf8;
+
+abbr = Optimize[lower{1,3} dot (lower{1,3} dot?)?];
+cons_only = utf.consonants+;
+
+abbreviation = 
+   util.Insert["abbreviation { "]
+   util.Insert["abbr: " q]
+   (abbr | cons_only)
+   util.Insert[q]
+   util.Insert[" }"]
+ ;
+
+export ABBREVIATION = Optimize[abbreviation];

@@ -1,0 +1,22 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as num;
+import 'ordinal.grm' as ord;
+import 'decimal.grm' as dec;
+import 'date.grm' as date;
+
+q = util.quote;
+s = util.s;
+
+sym = Optimize[StringFile['lexicon/degrees.tsv', 'utf8', 'utf8']];
+
+degrees =
+  util.Delete["degrees|"]
+  (num.CARDINAL_MARKUP|dec.DECIMAL_MARKUP)
+  util.Insert[" "]
+  util.Delete[s "deg|symbol:"]
+  sym
+  util.Delete[s "|" s]
+;
+
+export DEGREES = Optimize[degrees];

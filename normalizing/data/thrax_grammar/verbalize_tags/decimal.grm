@@ -1,0 +1,25 @@
+import '../utf8.grm' as utf;
+import '../util.grm' as util;
+import 'numbers.grm' as n;
+
+q = util.quote;
+s = util.s;
+
+#TODO: if we have large fractional parts, we want to express them digit by digit
+# ex: 1,4789 = einn komma fjórir sjö átta níu 
+
+zero = "0".utf8;
+positive_digits = Optimize[utf.digits - zero];
+
+
+decimal_markup =
+  util.Delete["decimal|"]
+  util.Delete[s "integer_part:" s]
+  n.DIGITS
+  util.Delete[s "|" s "fractional_part:" s]
+  util.Insert[" komma "]
+  n.DIGITS
+  util.Delete[s "|"]
+;
+
+export DECIMAL_MARKUP = Optimize[decimal_markup];
